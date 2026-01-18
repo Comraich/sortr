@@ -30,9 +30,6 @@ function Header() {
       </Link>
       {isLoggedIn && !isLoginPage && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Link to="/print" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
-            Print QR
-          </Link>
           <Link to="/settings" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
             Settings
           </Link>
