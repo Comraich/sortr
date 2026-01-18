@@ -57,9 +57,20 @@ Environment variables in root `.env` file:
 - `PORT` - Backend port (default 8000)
 - `DB_STORAGE` - SQLite file path
 - `SECRET_KEY` - JWT signing key
-- `FRONTEND_URL` - For OAuth redirect
+- `FRONTEND_URL` - For OAuth redirect (include base path if using one)
 - `VITE_API_URL` - Frontend API endpoint
+- `VITE_BASE_URL` - Base path for frontend deployment (e.g., `/sortr/` for hosting at `example.com/sortr`)
+- `VITE_APP_URL` - Full app URL for QR codes (optional, auto-detected from origin + base path)
 - OAuth credentials for Google, GitHub, Microsoft
 - PostgreSQL config (optional): `DB_DIALECT`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 
 Vite is configured to read env from parent directory (`envDir: '../'`).
+
+### Deploying at a Custom Path
+
+To deploy the app at a path other than root (e.g., `https://example.com/sortr`):
+
+1. Set `VITE_BASE_URL=/sortr/` in `.env` (trailing slash required)
+2. Set `FRONTEND_URL=https://example.com/sortr` for OAuth redirects
+3. Rebuild the frontend: `npm run build`
+4. Configure your reverse proxy to serve the frontend at `/sortr`

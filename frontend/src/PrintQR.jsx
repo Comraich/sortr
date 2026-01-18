@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
 
 function PrintQR() {
   const [items, setItems] = useState([]);
