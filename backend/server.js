@@ -123,6 +123,7 @@ passport.use(new MicrosoftStrategy({
     clientID: process.env.MICROSOFT_CLIENT_ID || 'placeholder_id',
     clientSecret: process.env.MICROSOFT_CLIENT_SECRET || 'placeholder_secret',
     callbackURL: "/auth/microsoft/callback",
+    tenant: process.env.MICROSOFT_TENANT_ID || 'common',
     scope: ['user.read']
   },
   async (accessToken, refreshToken, profile, cb) => {
