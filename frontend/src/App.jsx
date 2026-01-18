@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import LocationHome from './LocationHome';
+import LocationDetail from './LocationDetail';
 import ItemList from './ItemList';
 import ItemForm from './ItemForm';
 import ItemDetail from './ItemDetail';
@@ -51,7 +53,9 @@ function App() {
 
         <div className="main-content">
           <Routes>
-            <Route path="/" element={<ItemList />} />
+            <Route path="/" element={<LocationHome />} />
+            <Route path="/location/:id" element={<LocationDetail />} />
+            <Route path="/items" element={<ItemList />} />
             <Route path="/login" element={<Login />} />
             <Route path="/add" element={<ItemForm />} />
             <Route path="/edit/:id" element={<ItemForm />} />

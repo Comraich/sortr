@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
+import QRCodeDisplay from './QRCodeDisplay';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
@@ -107,16 +107,10 @@ function BoxDetail() {
           </div>
         </div>
 
-        <div className="detail-qr">
-          <QRCodeSVG
-            value={`${APP_URL}/box/${box.id}`}
-            size={150}
-            level="M"
-          />
-          <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '10px', textAlign: 'center' }}>
-            Scan to view box
-          </p>
-        </div>
+        <QRCodeDisplay
+          value={`${APP_URL}/box/${box.id}`}
+          label={box.name}
+        />
       </div>
 
       {items.length > 0 && (

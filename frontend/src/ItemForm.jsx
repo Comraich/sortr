@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
 
 function ItemForm() {
   const navigate = useNavigate();
@@ -160,8 +158,6 @@ function ItemForm() {
     }
   };
 
-  const selectedBox = boxes.find(b => b.id === parseInt(formData.boxId));
-
   return (
     <section className="card form-section">
       <h2>{isEditing ? 'Edit Item' : 'Add New Item'}</h2>
@@ -225,18 +221,6 @@ function ItemForm() {
             Cancel
           </button>
         </div>
-
-        {isEditing && (
-          <div style={{ marginTop: '30px', textAlign: 'center', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-            <h3 style={{ marginBottom: '15px' }}>Item QR Code</h3>
-            <div style={{ background: 'white', padding: '10px', display: 'inline-block', border: '1px solid #ddd', borderRadius: '8px' }}>
-              <QRCodeSVG value={`${APP_URL}/item/${id}`} size={128} level="M" />
-            </div>
-            <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '10px' }}>
-              Scan to identify item
-            </p>
-          </div>
-        )}
       </form>
     </section>
   );

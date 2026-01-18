@@ -52,6 +52,12 @@ function ItemList() {
           Add New Item
         </Link>
       </div>
+      <div style={{ marginBottom: '15px' }}>
+        <Link to="/" style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>
+          &larr; Back to Locations
+        </Link>
+      </div>
+
       {items.length === 0 ? (
         <p>No items in storage.</p>
       ) : (
