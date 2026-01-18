@@ -35,7 +35,40 @@ if (process.env.DB_DIALECT === 'postgres') {
   });
 }
 
-// --- Database Model ---
+// --- Database Models ---
+
+// Location Model
+const Location = sequelize.define('Location', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+// Box Model
+const Box = sequelize.define('Box', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  locationId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  }
+});
+
+// Item Model
 const Item = sequelize.define('Item', {
   id: {
     type: DataTypes.INTEGER,
@@ -50,15 +83,17 @@ const Item = sequelize.define('Item', {
     type: DataTypes.STRING,
     allowNull: true
   },
-  location: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  boxNumber: {
-    type: DataTypes.STRING,
+  boxId: {
+    type: DataTypes.INTEGER,
     allowNull: true
   }
 });
+
+// --- Model Relationships ---
+Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
+Box.belongsTo(Location, { foreignKey: 'locationId' });
+Box.hasMany(Item, { foreignKey: 'boxId', onDelete: 'SET NULL' });
+Item.belongsTo(Box, { foreignKey: 'boxId' });
 
 // --- User Model ---
 const User = sequelize.define('User', {
@@ -232,11 +267,140 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// --- Location Endpoints ---
+
+// List all locations
+app.get('/api/locations', authenticateToken, async (req, res) => {
+  try {
+    const locations = await Location.findAll({ order: [['name', 'ASC']] });
+    res.json(locations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create location
+app.post('/api/locations', authenticateToken, async (req, res) => {
+  try {
+    const location = await Location.create(req.body);
+    res.json(location);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update location
+app.put('/api/locations/:id', authenticateToken, async (req, res) => {
+  try {
+    const location = await Location.findByPk(req.params.id);
+    if (location) {
+      await location.update(req.body);
+      res.json(location);
+    } else {
+      res.status(404).json({ detail: "Location not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete location
+app.delete('/api/locations/:id', authenticateToken, async (req, res) => {
+  try {
+    const location = await Location.findByPk(req.params.id);
+    if (!location) {
+      return res.status(404).json({ detail: "Location not found" });
+    }
+    const boxCount = await Box.count({ where: { locationId: req.params.id } });
+    if (boxCount > 0) {
+      return res.status(400).json({ error: `Cannot delete location with ${boxCount} box(es). Remove boxes first.` });
+    }
+    await location.destroy();
+    res.json({ message: "Location deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Box Endpoints ---
+
+// List all boxes (optionally filter by locationId)
+app.get('/api/boxes', authenticateToken, async (req, res) => {
+  try {
+    const where = {};
+    if (req.query.locationId) {
+      where.locationId = req.query.locationId;
+    }
+    const boxes = await Box.findAll({
+      where,
+      include: [{ model: Location, attributes: ['id', 'name'] }],
+      order: [['name', 'ASC']]
+    });
+    res.json(boxes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create box
+app.post('/api/boxes', authenticateToken, async (req, res) => {
+  try {
+    const box = await Box.create(req.body);
+    const boxWithLocation = await Box.findByPk(box.id, {
+      include: [{ model: Location, attributes: ['id', 'name'] }]
+    });
+    res.json(boxWithLocation);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update box
+app.put('/api/boxes/:id', authenticateToken, async (req, res) => {
+  try {
+    const box = await Box.findByPk(req.params.id);
+    if (box) {
+      await box.update(req.body);
+      const boxWithLocation = await Box.findByPk(box.id, {
+        include: [{ model: Location, attributes: ['id', 'name'] }]
+      });
+      res.json(boxWithLocation);
+    } else {
+      res.status(404).json({ detail: "Box not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete box
+app.delete('/api/boxes/:id', authenticateToken, async (req, res) => {
+  try {
+    const box = await Box.findByPk(req.params.id);
+    if (!box) {
+      return res.status(404).json({ detail: "Box not found" });
+    }
+    const itemCount = await Item.count({ where: { boxId: req.params.id } });
+    if (itemCount > 0) {
+      return res.status(400).json({ error: `Cannot delete box with ${itemCount} item(s). Remove or reassign items first.` });
+    }
+    await box.destroy();
+    res.json({ message: "Box deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Item Endpoints ---
+
 // Create Item
 app.post('/api/items/', authenticateToken, async (req, res) => {
   try {
     const item = await Item.create(req.body);
-    res.json(item);
+    const itemWithBox = await Item.findByPk(item.id, {
+      include: [{ model: Box, include: [{ model: Location }] }]
+    });
+    res.json(itemWithBox);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -247,7 +411,11 @@ app.get('/api/items/', authenticateToken, async (req, res) => {
   const offset = parseInt(req.query.skip) || 0;
   const limit = parseInt(req.query.limit) || 100;
   try {
-    const items = await Item.findAll({ offset, limit });
+    const items = await Item.findAll({
+      offset,
+      limit,
+      include: [{ model: Box, include: [{ model: Location }] }]
+    });
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -257,7 +425,9 @@ app.get('/api/items/', authenticateToken, async (req, res) => {
 // Read One Item
 app.get('/api/items/:id', authenticateToken, async (req, res) => {
   try {
-    const item = await Item.findByPk(req.params.id);
+    const item = await Item.findByPk(req.params.id, {
+      include: [{ model: Box, include: [{ model: Location }] }]
+    });
     if (item) {
       res.json(item);
     } else {
@@ -274,7 +444,10 @@ app.put('/api/items/:id', authenticateToken, async (req, res) => {
     const item = await Item.findByPk(req.params.id);
     if (item) {
       await item.update(req.body);
-      res.json(item);
+      const itemWithBox = await Item.findByPk(item.id, {
+        include: [{ model: Box, include: [{ model: Location }] }]
+      });
+      res.json(itemWithBox);
     } else {
       res.status(404).json({ detail: "Item not found" });
     }
