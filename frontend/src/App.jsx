@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import ErrorBoundary from './ErrorBoundary';
 import LocationHome from './LocationHome';
 import LocationDetail from './LocationDetail';
 import ItemList from './ItemList';
@@ -44,28 +45,32 @@ function Header() {
 
 function App() {
   return (
-    <Router>
-      <div className="container">
-        <Header />
+    <ErrorBoundary>
+      <Router>
+        <div className="container">
+          <Header />
 
-        <div className="main-content">
-          <Routes>
-            <Route path="/" element={<LocationHome />} />
-            <Route path="/location/:id" element={<LocationDetail />} />
-            <Route path="/items" element={<ItemList />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/add" element={<ItemForm />} />
-            <Route path="/edit/:id" element={<ItemForm />} />
-            <Route path="/item/:id" element={<ItemDetail />} />
-            <Route path="/box/:id" element={<BoxDetail />} />
-            <Route path="/print" element={<PrintQR />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/locations" element={<LocationList />} />
-            <Route path="/boxes" element={<BoxList />} />
-          </Routes>
+          <div className="main-content">
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<LocationHome />} />
+                <Route path="/location/:id" element={<LocationDetail />} />
+                <Route path="/items" element={<ItemList />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/add" element={<ItemForm />} />
+                <Route path="/edit/:id" element={<ItemForm />} />
+                <Route path="/item/:id" element={<ItemDetail />} />
+                <Route path="/box/:id" element={<BoxDetail />} />
+                <Route path="/print" element={<PrintQR />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/locations" element={<LocationList />} />
+                <Route path="/boxes" element={<BoxList />} />
+              </Routes>
+            </ErrorBoundary>
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, getApiUrl } from './api/client';
 
 function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -11,12 +10,18 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Check for token in URL (from OAuth redirect)
+  // Check for token in URL (from OAuth redirect) or expired session
   useEffect(() => {
     const token = searchParams.get('token');
+    const expired = searchParams.get('expired');
+
     if (token) {
       localStorage.setItem('token', token);
       navigate('/');
+    }
+
+    if (expired) {
+      setError('Your session has expired. Please log in again.');
     }
   }, [searchParams, navigate]);
 
@@ -26,28 +31,18 @@ function Login() {
     const endpoint = isRegistering ? '/api/register' : '/api/login';
 
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const data = await apiClient.post(endpoint, { username, password });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (isRegistering) {
-          setIsRegistering(false);
-          setError('Registration successful! Please log in.');
-        } else {
-          localStorage.setItem('token', data.token);
-          navigate('/');
-        }
+      if (isRegistering) {
+        setIsRegistering(false);
+        setError('Registration successful! Please log in.');
       } else {
-        setError(data.error || 'Authentication failed');
+        localStorage.setItem('token', data.token);
+        navigate('/');
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError('Failed to connect to server');
+      setError(err.message || 'Failed to connect to server');
     }
   };
 
@@ -79,13 +74,13 @@ function Login() {
         
         <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', textAlign: 'center' }}>
           <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#666' }}>Or sign in with</p>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#db4437', color: 'white' }} onClick={() => window.location.href = `${API_URL}/auth/google`}>
+          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#db4437', color: 'white' }} onClick={() => window.location.href = `${getApiUrl()}/auth/google`}>
             Google
           </button>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#333', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${API_URL}/auth/github`}>
+          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#333', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${getApiUrl()}/auth/github`}>
             GitHub
           </button>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#0078d4', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${API_URL}/auth/microsoft`}>
+          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#0078d4', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${getApiUrl()}/auth/microsoft`}>
             Microsoft
           </button>
         </div>

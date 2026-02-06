@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function ItemList() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,35 +13,33 @@ function ItemList() {
   }, []);
 
   const fetchItems = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
 
-      const response = await fetch(`${API_URL}/api/items/`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-      
-      const data = await response.json();
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiClient.get('/api/items/');
       setItems(data);
     } catch (error) {
       console.error("Error fetching inventory:", error);
+      setError('Failed to load items. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this item?")) return;
-    
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/api/items/${id}`, { 
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await apiClient.delete(`/api/items/${id}`);
       fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
+      alert('Failed to delete item. Please try again.');
     }
   };
 
@@ -58,7 +57,11 @@ function ItemList() {
         </Link>
       </div>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <p>Loading items...</p>
+      ) : error ? (
+        <div className="error-message">{error}</div>
+      ) : items.length === 0 ? (
         <p>No items in storage.</p>
       ) : (
         <table>

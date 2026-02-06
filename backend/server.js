@@ -1,5 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 const { Sequelize, DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -11,11 +14,31 @@ require('dotenv').config({ path: '../.env' });
 
 const app = express();
 const port = process.env.PORT || 8000;
-const SECRET_KEY = process.env.SECRET_KEY || 'default_secret';
+
+// Validate required environment variables
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+  console.error('FATAL ERROR: SECRET_KEY environment variable is required.');
+  console.error('Generate one with: openssl rand -base64 32');
+  process.exit(1);
+}
 
 // --- Middleware ---
-app.use(cors()); // Allow Frontend to communicate with Backend
-app.use(express.json()); // Parse JSON bodies
+// Request logging (skip in test mode to reduce noise)
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('combined'));
+}
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
+// Parse JSON bodies
+app.use(express.json());
+
+// Passport initialization
 app.use(passport.initialize());
 
 // --- Database Setup ---
@@ -105,8 +128,15 @@ const User = sequelize.define('User', {
 });
 
 // Sync Database (Creates tables if they don't exist)
-sequelize.sync({ alter: true }).then(() => {
-  console.log('Database & tables created!');
+// In test mode, use force: true to reset database between tests
+const syncOptions = process.env.NODE_ENV === 'test'
+  ? { force: true }
+  : { alter: true };
+
+sequelize.sync(syncOptions).then(() => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Database & tables created!');
+  }
 });
 
 // --- Passport Config ---
@@ -178,6 +208,28 @@ passport.use(new MicrosoftStrategy({
   }
 ));
 
+// --- Rate Limiting ---
+// Prevent brute force attacks on authentication endpoints
+// Disable in test mode to allow multiple rapid requests
+const authLimiter = process.env.NODE_ENV === 'test'
+  ? (req, res, next) => next() // Bypass rate limiting in tests
+  : rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 5, // Limit each IP to 5 requests per windowMs
+      message: { error: 'Too many authentication attempts, please try again after 15 minutes' },
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+
+// --- Validation Middleware ---
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: 'Validation failed', details: errors.array() });
+  }
+  next();
+};
+
 // --- Auth Middleware ---
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -196,11 +248,11 @@ const authenticateToken = (req, res, next) => {
 // Google Auth Routes
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/callback', 
+app.get('/auth/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     // Generate JWT
-    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY);
+    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY, { expiresIn: '7d' });
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/login?token=${token}`);
@@ -210,11 +262,11 @@ app.get('/auth/google/callback',
 // GitHub Auth Routes
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-app.get('/auth/github/callback', 
+app.get('/auth/github/callback',
   passport.authenticate('github', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     // Generate JWT
-    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY);
+    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY, { expiresIn: '7d' });
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/login?token=${token}`);
@@ -224,19 +276,72 @@ app.get('/auth/github/callback',
 // Microsoft Auth Routes
 app.get('/auth/microsoft', passport.authenticate('microsoft', { prompt: 'select_account' }));
 
-app.get('/auth/microsoft/callback', 
+app.get('/auth/microsoft/callback',
   passport.authenticate('microsoft', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     // Generate JWT
-    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY);
+    const token = jwt.sign({ id: req.user.id, username: req.user.username }, SECRET_KEY, { expiresIn: '7d' });
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/login?token=${token}`);
   }
 );
 
+// Google Mobile Auth (for Android/iOS apps)
+// Verifies Google ID token and returns JWT
+app.post('/api/auth/google-mobile', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ error: 'ID token is required' });
+    }
+
+    // Verify the ID token with Google
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const googleId = payload['sub'];
+    const email = payload['email'];
+
+    // Find or create user
+    const [user, created] = await User.findOrCreate({
+      where: { googleId: googleId },
+      defaults: {
+        username: email,
+        googleId: googleId
+      }
+    });
+
+    // Generate JWT
+    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '7d' });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username
+      }
+    });
+  } catch (error) {
+    console.error('Google mobile auth error:', error);
+    res.status(401).json({ error: 'Invalid ID token' });
+  }
+});
+
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/api/register',
+  authLimiter,
+  [
+    body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -251,16 +356,28 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login',
+  authLimiter,
+  [
+    body('username').trim().notEmpty().withMessage('Username is required'),
+    body('password').notEmpty().withMessage('Password is required')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ where: { username } });
     if (!user) return res.status(400).json({ error: 'User not found' });
 
+    // Check if user has a password (not OAuth-only)
+    if (!user.password) {
+      return res.status(400).json({ error: 'Please use OAuth to sign in (Google, GitHub, or Microsoft)' });
+    }
+
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
 
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY);
+    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '7d' });
     res.json({ token });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -280,7 +397,13 @@ app.get('/api/locations', authenticateToken, async (req, res) => {
 });
 
 // Create location
-app.post('/api/locations', authenticateToken, async (req, res) => {
+app.post('/api/locations',
+  authenticateToken,
+  [
+    body('name').trim().notEmpty().withMessage('Location name is required')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const location = await Location.create(req.body);
     res.json(location);
@@ -343,7 +466,14 @@ app.get('/api/boxes', authenticateToken, async (req, res) => {
 });
 
 // Create box
-app.post('/api/boxes', authenticateToken, async (req, res) => {
+app.post('/api/boxes',
+  authenticateToken,
+  [
+    body('name').trim().notEmpty().withMessage('Box name is required'),
+    body('locationId').isInt({ min: 1 }).withMessage('Valid location ID is required')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const box = await Box.create(req.body);
     const boxWithLocation = await Box.findByPk(box.id, {
@@ -394,7 +524,15 @@ app.delete('/api/boxes/:id', authenticateToken, async (req, res) => {
 // --- Item Endpoints ---
 
 // Create Item
-app.post('/api/items/', authenticateToken, async (req, res) => {
+app.post('/api/items/',
+  authenticateToken,
+  [
+    body('name').trim().notEmpty().withMessage('Item name is required'),
+    body('category').optional().trim(),
+    body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const item = await Item.create(req.body);
     const itemWithBox = await Item.findByPk(item.id, {
@@ -439,7 +577,15 @@ app.get('/api/items/:id', authenticateToken, async (req, res) => {
 });
 
 // Update Item
-app.put('/api/items/:id', authenticateToken, async (req, res) => {
+app.put('/api/items/:id',
+  authenticateToken,
+  [
+    body('name').optional().trim().notEmpty().withMessage('Item name cannot be empty'),
+    body('category').optional().trim(),
+    body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
+  ],
+  validate,
+  async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (item) {
@@ -471,7 +617,49 @@ app.delete('/api/items/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Start Server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Node.js server running at http://0.0.0.0:${port}`);
+// --- Error Handling Middleware ---
+// 404 handler - must be after all routes
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route not found' });
 });
+
+// Global error handler - must be last
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+
+  // Handle specific error types
+  if (err.name === 'SequelizeValidationError') {
+    return res.status(400).json({
+      error: 'Validation error',
+      details: err.errors.map(e => e.message)
+    });
+  }
+
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    return res.status(400).json({
+      error: 'Duplicate entry',
+      details: err.errors.map(e => e.message)
+    });
+  }
+
+  if (err.name === 'SequelizeForeignKeyConstraintError') {
+    return res.status(400).json({
+      error: 'Invalid reference - the related record does not exist'
+    });
+  }
+
+  // Default error response
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
+  });
+});
+
+// Start Server (only if run directly, not imported for tests)
+if (require.main === module) {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Node.js server running at http://0.0.0.0:${port}`);
+  });
+}
+
+// Export for testing
+module.exports = app;

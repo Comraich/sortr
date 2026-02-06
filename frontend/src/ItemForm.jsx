@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function ItemForm() {
   const navigate = useNavigate();
@@ -40,27 +39,14 @@ function ItemForm() {
     }
   }, [selectedLocationId, boxes]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchLocations = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/locations');
       setLocations(data);
     } catch (err) {
       setError('Error fetching locations');
@@ -68,14 +54,13 @@ function ItemForm() {
   };
 
   const fetchBoxes = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/boxes');
       setBoxes(data);
     } catch (err) {
       setError('Error fetching boxes');
@@ -83,30 +68,24 @@ function ItemForm() {
   };
 
   const fetchItem = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
 
-      const response = await fetch(`${API_URL}/api/items/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+    try {
+      const data = await apiClient.get(`/api/items/${id}`);
+      setFormData({
+        name: data.name,
+        category: data.category || '',
+        boxId: data.boxId ? data.boxId.toString() : ''
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setFormData({
-          name: data.name,
-          category: data.category || '',
-          boxId: data.boxId ? data.boxId.toString() : ''
-        });
-
-        if (data.Box && data.Box.locationId) {
-          setSelectedLocationId(data.Box.locationId.toString());
-        }
-      } else {
-        setError("Failed to fetch item details");
+      if (data.Box && data.Box.locationId) {
+        setSelectedLocationId(data.Box.locationId.toString());
       }
     } catch (err) {
-      setError("Error connecting to server");
+      setError(err.message || "Error connecting to server");
     }
   };
 
@@ -125,9 +104,6 @@ function ItemForm() {
     e.preventDefault();
     setError(null);
 
-    const method = isEditing ? 'PUT' : 'POST';
-    const url = isEditing ? `${API_URL}/api/items/${id}` : `${API_URL}/api/items/`;
-
     const submitData = {
       name: formData.name,
       category: formData.category,
@@ -135,26 +111,15 @@ function ItemForm() {
     };
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(submitData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        navigate('/');
+      if (isEditing) {
+        await apiClient.put(`/api/items/${id}`, submitData);
       } else {
-        setError(data.error || "An error occurred");
+        await apiClient.post('/api/items/', submitData);
       }
+      navigate('/');
     } catch (error) {
       console.error("Error saving item:", error);
-      setError("Failed to connect to server");
+      setError(error.message || "Failed to save item");
     }
   };
 
