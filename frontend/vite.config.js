@@ -12,5 +12,16 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ['qrcode.react'],
     },
+    server: {
+      host: true, // Listen on all network interfaces
+      allowedHosts: [
+        'localhost',
+        '.localhost',
+        'sortr',
+        '.sortr', // Allows sortr and *.sortr subdomains
+      ],
+      // Uncomment for maximum flexibility (less secure):
+      // allowedHosts: 'all',
+    },
   }
 })
