@@ -1,43 +1,40 @@
-'use strict';
+const { Sequelize } = require('sequelize');
+require('dotenv').config({ path: '../.env' });
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/database.js')[env];
-const db = {};
-
+// Initialize Sequelize
 let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+
+if (process.env.DB_DIALECT === 'postgres') {
+  sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    dialect: 'postgres',
+    logging: false
+  });
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: process.env.DB_STORAGE || './inventory.db',
+    logging: false
+  });
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+// Load models
+const Location = require('./Location')(sequelize);
+const Box = require('./Box')(sequelize);
+const Item = require('./Item')(sequelize);
+const User = require('./User')(sequelize);
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+// Define relationships
+Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
+Box.belongsTo(Location, { foreignKey: 'locationId' });
+Box.hasMany(Item, { foreignKey: 'boxId', onDelete: 'SET NULL' });
+Item.belongsTo(Box, { foreignKey: 'boxId' });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-module.exports = db;
+// Export sequelize instance and models
+module.exports = {
+  sequelize,
+  Location,
+  Box,
+  Item,
+  User
+};

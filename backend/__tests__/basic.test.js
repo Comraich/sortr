@@ -7,8 +7,13 @@ process.env.NODE_ENV = 'test';
 
 // Wait for app to initialize before running tests
 const app = require('../server');
+const { dbReady } = require('../server');
 
 describe('Basic API Tests', () => {
+  // Wait for database to be ready before running tests
+  beforeAll(async () => {
+    await dbReady;
+  });
   describe('Health & Security', () => {
     it('should return 404 for unknown routes', async () => {
       const response = await request(app).get('/api/nonexistent');

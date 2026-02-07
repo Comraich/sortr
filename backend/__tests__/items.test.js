@@ -3,8 +3,10 @@ const request = require('supertest');
 // Mock environment variables for testing
 process.env.SECRET_KEY = 'test-secret-key-for-testing-only';
 process.env.DB_STORAGE = ':memory:';
+process.env.NODE_ENV = 'test';
 
 const app = require('../server');
+const { dbReady } = require('../server');
 
 let authToken;
 let locationId;
@@ -14,6 +16,9 @@ describe('Items API', () => {
   // Setup: Create user, login, create location and box
   beforeAll(async () => {
     jest.setTimeout(30000); // Increase timeout for setup
+
+    // Wait for database to be ready
+    await dbReady;
     // Register and login to get token
     await request(app)
       .post('/api/register')

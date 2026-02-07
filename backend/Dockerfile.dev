@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+# Install dependencies for SQLite and development tools
+RUN apk add --no-cache sqlite python3 make g++
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Start with nodemon for hot reloading
+CMD ["npm", "run", "dev"]

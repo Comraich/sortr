@@ -12,11 +12,22 @@ function Login() {
 
   // Check for token in URL (from OAuth redirect) or expired session
   useEffect(() => {
-    const token = searchParams.get('token');
+    // Check hash fragment first (more secure, used by OAuth callbacks)
+    const hash = window.location.hash.substring(1); // Remove the # character
+    const hashParams = new URLSearchParams(hash);
+    let token = hashParams.get('token');
+
+    // Fallback to query params for backwards compatibility
+    if (!token) {
+      token = searchParams.get('token');
+    }
+
     const expired = searchParams.get('expired');
 
     if (token) {
       localStorage.setItem('token', token);
+      // Clear the hash to remove token from URL
+      window.location.hash = '';
       navigate('/');
     }
 

@@ -1,0 +1,34 @@
+# Git
+.git/
+.gitignore
+.github/
+
+# Documentation
+*.md
+CLAUDE.md
+LICENSE
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Android (not needed for Docker)
+android/
+
+# Claude
+.claude/
