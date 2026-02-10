@@ -96,7 +96,40 @@ docker-compose logs -f backend
 docker-compose logs -f frontend
 ```
 
-## Step 3: Run Database Migrations
+## Step 3: Configure Firewall
+
+**IMPORTANT**: Open required ports in your firewall for the application to be accessible.
+
+### Required Ports
+
+- **Port 80** (HTTP) or **443** (HTTPS) - Frontend access
+- **Port 8000** - Backend API
+
+### Open Ports
+
+**Ubuntu/Debian (UFW):**
+```bash
+sudo ufw allow 80/tcp      # Frontend
+sudo ufw allow 8000/tcp    # Backend API
+sudo ufw status            # Verify
+```
+
+**CentOS/RHEL (firewalld):**
+```bash
+sudo firewall-cmd --add-port=80/tcp --permanent
+sudo firewall-cmd --add-port=8000/tcp --permanent
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-ports  # Verify
+```
+
+**Test Access:**
+```bash
+# From your local machine:
+curl http://sortr:8000/health
+# Should return: {"status":"ok",...}
+```
+
+## Step 4: Run Database Migrations
 
 **IMPORTANT**: Run migrations after first deployment and after any updates:
 
@@ -110,7 +143,7 @@ Check migration status:
 docker-compose exec backend npx sequelize-cli db:migrate:status
 ```
 
-## Step 4: Verify Deployment
+## Step 5: Verify Deployment
 
 ### Health Check
 
@@ -144,7 +177,7 @@ Open browser and navigate to: `http://sortr`
 
 You should see the Sortr login page.
 
-## Step 5: Set Up HTTPS (Recommended)
+## Step 6: Set Up HTTPS (Recommended)
 
 For production, use HTTPS with a reverse proxy.
 
