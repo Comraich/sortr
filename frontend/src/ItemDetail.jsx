@@ -72,15 +72,15 @@ function ItemDetail() {
       <div className="detail-grid">
         <div className="detail-info">
           <div className="detail-row">
-            <span className="detail-label">Category</span>
+            <span className="detail-label">Category: </span>
             <span className="detail-value">{item.category || '-'}</span>
           </div>
           <div className="detail-row">
-            <span className="detail-label">Location</span>
+            <span className="detail-label">Location: </span>
             <span className="detail-value">{item.Box?.Location?.name || '-'}</span>
           </div>
           <div className="detail-row">
-            <span className="detail-label">Box</span>
+            <span className="detail-label">Box: </span>
             <span className="detail-value">
               {item.Box ? (
                 <Link to={`/box/${item.Box.id}`}>{item.Box.name}</Link>

@@ -98,11 +98,11 @@ function BoxDetail() {
       <div className="detail-grid">
         <div className="detail-info">
           <div className="detail-row">
-            <span className="detail-label">Location</span>
+            <span className="detail-label">Location: </span>
             <span className="detail-value">{box.Location?.name || '-'}</span>
           </div>
           <div className="detail-row">
-            <span className="detail-label">Items in box</span>
+            <span className="detail-label">Items in box: </span>
             <span className="detail-value">{items.length}</span>
           </div>
         </div>
