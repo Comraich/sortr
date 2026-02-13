@@ -95,10 +95,10 @@ function BoxDetail() {
         <h2 style={{ margin: 0 }}>{box.name}</h2>
         <Link
           to={`/add?boxId=${box.id}`}
-          className="btn-primary"
-          style={{ textDecoration: 'none', padding: '10px 15px' }}
+          className="btn-small"
+          style={{ textDecoration: 'none' }}
         >
-          Add Item to Box
+          Add Item
         </Link>
       </div>
 
