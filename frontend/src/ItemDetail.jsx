@@ -40,6 +40,32 @@ function ItemDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return navigate('/login');
+
+      const response = await fetch(`${API_URL}/api/items/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        navigate('/');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete item');
+      }
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      alert('Error deleting item');
+    }
+  };
+
   if (loading) {
     return (
       <section className="card">
@@ -64,9 +90,14 @@ function ItemDetail() {
     <section className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}>{item.name}</h2>
-        <Link to={`/edit/${item.id}`} className="btn-small" style={{ textDecoration: 'none' }}>
-          Edit
-        </Link>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Link to={`/edit/${item.id}`} className="btn-small" style={{ textDecoration: 'none' }}>
+            Edit
+          </Link>
+          <button onClick={handleDelete} className="btn-danger btn-small">
+            Delete
+          </button>
+        </div>
       </div>
 
       <div className="detail-grid">
