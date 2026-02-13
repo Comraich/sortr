@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { apiClient, isAuthenticated } from './api/client';
 
 function ItemForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const isEditing = !!id;
+  const preselectedBoxId = searchParams.get('boxId');
   const [error, setError] = useState(null);
   const [locations, setLocations] = useState([]);
   const [boxes, setBoxes] = useState([]);
@@ -38,6 +40,17 @@ function ItemForm() {
       setFilteredBoxes([]);
     }
   }, [selectedLocationId, boxes]);
+
+  // Handle preselected box from URL parameter
+  useEffect(() => {
+    if (preselectedBoxId && boxes.length > 0 && !isEditing) {
+      const box = boxes.find(b => b.id === parseInt(preselectedBoxId));
+      if (box) {
+        setFormData(prev => ({ ...prev, boxId: preselectedBoxId }));
+        setSelectedLocationId(box.locationId.toString());
+      }
+    }
+  }, [preselectedBoxId, boxes, isEditing]);
 
   const fetchLocations = async () => {
     if (!isAuthenticated()) {

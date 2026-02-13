@@ -93,6 +93,13 @@ function BoxDetail() {
     <section className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}>{box.name}</h2>
+        <Link
+          to={`/add?boxId=${box.id}`}
+          className="btn-primary"
+          style={{ textDecoration: 'none', padding: '10px 15px' }}
+        >
+          Add Item to Box
+        </Link>
       </div>
 
       <div className="detail-grid">
