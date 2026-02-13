@@ -69,6 +69,32 @@ function BoxDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${box.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      if (!headers) return;
+
+      const response = await fetch(`${API_URL}/api/boxes/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (response.ok) {
+        navigate('/');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete box');
+      }
+    } catch (err) {
+      console.error('Error deleting box:', err);
+      alert('Error deleting box');
+    }
+  };
+
   if (loading) {
     return (
       <section className="card">
@@ -154,10 +180,19 @@ function BoxDetail() {
         </div>
       )}
 
-      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link to="/" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px 15px' }}>
           Back to Inventory
         </Link>
+        {items.length === 0 && (
+          <button
+            onClick={handleDelete}
+            className="btn-danger"
+            style={{ padding: '10px 15px' }}
+          >
+            Delete Empty Box
+          </button>
+        )}
       </div>
     </section>
   );

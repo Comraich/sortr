@@ -71,6 +71,32 @@ function LocationDetail() {
     boxes.some(box => box.id === item.boxId)
   ).length;
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${location.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      if (!headers) return;
+
+      const response = await fetch(`${API_URL}/api/locations/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (response.ok) {
+        navigate('/');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete location');
+      }
+    } catch (err) {
+      console.error('Error deleting location:', err);
+      alert('Error deleting location');
+    }
+  };
+
   if (loading) {
     return (
       <section className="card">
@@ -150,10 +176,19 @@ function LocationDetail() {
         </table>
       )}
 
-      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link to="/" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px 15px' }}>
           Back to Locations
         </Link>
+        {boxes.length === 0 && (
+          <button
+            onClick={handleDelete}
+            className="btn-danger"
+            style={{ padding: '10px 15px' }}
+          >
+            Delete Empty Location
+          </button>
+        )}
       </div>
     </section>
   );
