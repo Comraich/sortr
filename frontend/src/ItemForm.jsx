@@ -11,6 +11,7 @@ function ItemForm() {
   const [error, setError] = useState(null);
   const [locations, setLocations] = useState([]);
   const [boxes, setBoxes] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filteredBoxes, setFilteredBoxes] = useState([]);
   const [selectedLocationId, setSelectedLocationId] = useState('');
 
@@ -25,6 +26,7 @@ function ItemForm() {
   useEffect(() => {
     fetchLocations();
     fetchBoxes();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -77,6 +79,20 @@ function ItemForm() {
       setBoxes(data);
     } catch (err) {
       setError('Error fetching boxes');
+    }
+  };
+
+  const fetchCategories = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const data = await apiClient.get('/api/categories');
+      setCategories(data);
+    } catch (err) {
+      setError('Error fetching categories');
     }
   };
 
@@ -155,12 +171,16 @@ function ItemForm() {
         </div>
         <div className="form-group">
           <label>Category</label>
-          <input
-            type="text"
+          <select
             name="category"
             value={formData.category}
             onChange={handleInputChange}
-          />
+          >
+            <option value="">-- Select Category --</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
         </div>
         <div className="form-row">
           <div className="form-group">

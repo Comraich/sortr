@@ -23,6 +23,7 @@ const Location = require('./Location')(sequelize);
 const Box = require('./Box')(sequelize);
 const Item = require('./Item')(sequelize);
 const User = require('./User')(sequelize);
+const Category = require('./Category')(sequelize);
 
 // Define relationships
 Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
@@ -36,5 +37,6 @@ module.exports = {
   Location,
   Box,
   Item,
-  User
+  User,
+  Category
 };

@@ -73,6 +73,7 @@ const authRoutes = require('./routes/auth');
 const locationRoutes = require('./routes/locations');
 const boxRoutes = require('./routes/boxes');
 const itemRoutes = require('./routes/items');
+const categoryRoutes = require('./routes/categories');
 
 // Mount routes
 app.use('/health', healthRoutes);
@@ -84,6 +85,7 @@ app.use('/api', authRoutes); // This makes /api/register, /api/login available
 app.use('/api/locations', locationRoutes);
 app.use('/api/boxes', boxRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // --- Error Handling Middleware ---
 // 404 handler - must be after all routes
