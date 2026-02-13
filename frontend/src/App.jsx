@@ -10,6 +10,7 @@ import Login from './Login';
 import Settings from './Settings';
 import LocationList from './LocationList';
 import BoxList from './BoxList';
+import CategoryList from './CategoryList';
 import PrintQR from './PrintQR';
 import './App.css';
 
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/locations" element={<LocationList />} />
                 <Route path="/boxes" element={<BoxList />} />
+                <Route path="/categories" element={<CategoryList />} />
               </Routes>
             </ErrorBoundary>
           </div>
