@@ -63,10 +63,10 @@ function LocationHome() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}>Storage Locations</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Link to="/print" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
+          <Link to="/print" className="btn-small" style={{ textDecoration: 'none', width: 'auto' }}>
             Print QR Codes
           </Link>
-          <Link to="/items" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
+          <Link to="/items" className="btn-small" style={{ textDecoration: 'none', width: 'auto' }}>
             View All Items
           </Link>
         </div>
