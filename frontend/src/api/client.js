@@ -108,6 +108,24 @@ export const isAuthenticated = () => {
 };
 
 /**
+ * Check if user is an admin
+ * @returns {boolean}
+ */
+export const isAdmin = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+
+  try {
+    // Decode JWT token (format: header.payload.signature)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.isAdmin === true;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return false;
+  }
+};
+
+/**
  * Get API base URL (useful for OAuth redirects)
  * @returns {string}
  */

@@ -13,6 +13,7 @@ import BoxList from './BoxList';
 import CategoryList from './CategoryList';
 import UserManagement from './UserManagement';
 import PrintQR from './PrintQR';
+import { isAdmin } from './api/client';
 import './App.css';
 
 function Header() {
@@ -20,6 +21,7 @@ function Header() {
   const location = useLocation();
   const isLoggedIn = !!localStorage.getItem('token');
   const isLoginPage = location.pathname === '/login';
+  const userIsAdmin = isAdmin();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -33,9 +35,11 @@ function Header() {
       </Link>
       {isLoggedIn && !isLoginPage && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Link to="/settings" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
-            Settings
-          </Link>
+          {userIsAdmin && (
+            <Link to="/settings" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
+              Settings
+            </Link>
+          )}
           <button onClick={handleLogout} className="btn-secondary">
             Logout
           </button>
