@@ -103,3 +103,47 @@ button:hover { opacity: 0.9; }
   padding: 5px 10px;
   font-size: 0.8rem;
 }
+
+/* QR Code Printing Styles */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.qr-label {
+  margin-top: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qr-sublabel {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .qr-card {
+    border: 1px dashed #ccc;
+  }
+}
