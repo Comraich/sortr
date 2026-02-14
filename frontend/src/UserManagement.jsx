@@ -201,7 +201,7 @@ function UserManagement() {
           <span style={{ color: '#6b7280', margin: '0 8px' }}>/</span>
           <h2 style={{ margin: 0, display: 'inline' }}>User Management</h2>
         </div>
-        <button onClick={openAddModal} className="btn-primary">
+        <button onClick={openAddModal} className="btn-primary" style={{ width: 'auto', display: 'inline-block' }}>
           Add User
         </button>
       </div>
