@@ -4,6 +4,7 @@ import { apiClient, isAuthenticated } from './api/client';
 
 function ItemList() {
   const [items, setItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -43,6 +44,19 @@ function ItemList() {
     }
   };
 
+  // Filter items based on search query
+  const filteredItems = items.filter(item => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    const matchesName = item.name.toLowerCase().includes(query);
+    const matchesCategory = item.category?.toLowerCase().includes(query);
+    const matchesLocation = (item.Box?.Location?.name || item.Location?.name)?.toLowerCase().includes(query);
+    const matchesBox = item.Box?.name?.toLowerCase().includes(query);
+
+    return matchesName || matchesCategory || matchesLocation || matchesBox;
+  });
+
   return (
     <section className="card list-section">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -57,12 +71,34 @@ function ItemList() {
         </Link>
       </div>
 
+      {/* Search bar */}
+      <div style={{ marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="Search items by name, category, location, or box..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '10px 15px',
+            fontSize: '1rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px'
+          }}
+        />
+        {searchQuery && (
+          <div style={{ marginTop: '8px', fontSize: '0.9rem', color: '#6b7280' }}>
+            Found {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <p>Loading items...</p>
       ) : error ? (
         <div className="error-message">{error}</div>
-      ) : items.length === 0 ? (
-        <p>No items in storage.</p>
+      ) : filteredItems.length === 0 ? (
+        <p>{searchQuery ? 'No items match your search.' : 'No items in storage.'}</p>
       ) : (
         <table>
           <thead>
@@ -75,7 +111,7 @@ function ItemList() {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <tr key={item.id}>
                 <td>{item.name}</td>
                 <td>{item.category || '-'}</td>
