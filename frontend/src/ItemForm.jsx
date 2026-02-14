@@ -18,6 +18,7 @@ function ItemForm() {
   const initialFormState = {
     name: '',
     category: '',
+    description: '',
     locationId: '',
     boxId: ''
   };
@@ -108,6 +109,7 @@ function ItemForm() {
       setFormData({
         name: data.name,
         category: data.category || '',
+        description: data.description || '',
         locationId: data.locationId ? data.locationId.toString() : '',
         boxId: data.boxId ? data.boxId.toString() : ''
       });
@@ -141,7 +143,8 @@ function ItemForm() {
     // Build submit data conditionally
     const submitData = {
       name: formData.name,
-      category: formData.category
+      category: formData.category,
+      description: formData.description
     };
 
     // If a box is selected, only send boxId
@@ -195,6 +198,25 @@ function ItemForm() {
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
+        </div>
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            rows="4"
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #d1d5db',
+              borderRadius: '4px',
+              boxSizing: 'border-box',
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+              resize: 'vertical'
+            }}
+          />
         </div>
         <div className="form-row">
           <div className="form-group">

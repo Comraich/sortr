@@ -98,6 +98,12 @@ function ItemDetail() {
               ) : '-'}
             </span>
           </div>
+          {item.description && (
+            <div className="detail-row" style={{ marginTop: '15px' }}>
+              <span className="detail-label">Description: </span>
+              <p style={{ margin: '5px 0 0 0', color: '#374151', whiteSpace: 'pre-wrap' }}>{item.description}</p>
+            </div>
+          )}
         </div>
 
         <QRCodeDisplay

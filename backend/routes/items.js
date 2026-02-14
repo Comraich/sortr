@@ -11,6 +11,7 @@ router.post('/',
   [
     body('name').trim().notEmpty().withMessage('Item name is required'),
     body('category').optional().trim(),
+    body('description').optional().trim(),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
@@ -75,6 +76,7 @@ router.put('/:id',
   [
     body('name').optional().trim().notEmpty().withMessage('Item name cannot be empty'),
     body('category').optional().trim(),
+    body('description').optional().trim(),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
