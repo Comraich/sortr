@@ -19,7 +19,7 @@ function ProtectedAdminRoute({ children }) {
         <p style={{ color: '#dc2626', marginBottom: '20px' }}>
           You do not have permission to access this page. Admin privileges are required.
         </p>
-        <a href="/" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
+        <a href="/" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block', width: 'auto' }}>
           Return to Home
         </a>
       </section>
