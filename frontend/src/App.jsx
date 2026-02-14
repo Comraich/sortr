@@ -38,14 +38,14 @@ function Header() {
       </Link>
       {isLoggedIn && !isLoginPage && currentUser && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
+            {currentUser.displayName || currentUser.username}
+          </Link>
           {userIsAdmin && (
             <Link to="/settings" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
               Settings
             </Link>
           )}
-          <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
-            {currentUser.displayName || currentUser.username}
-          </Link>
           <button onClick={handleLogout} className="btn-secondary">
             Logout
           </button>
