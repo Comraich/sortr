@@ -189,7 +189,7 @@ function PrintQR() {
               <div key={`item-${item.id}`} className="qr-card">
                 <QRCodeSVG
                   value={`${APP_URL}/item/${item.id}`}
-                  size={120}
+                  size={60}
                   level="M"
                 />
                 <div className="qr-label">
@@ -204,7 +204,7 @@ function PrintQR() {
               <div key={`box-${box.id}`} className="qr-card">
                 <QRCodeSVG
                   value={`${APP_URL}/box/${box.id}`}
-                  size={120}
+                  size={60}
                   level="M"
                 />
                 <div className="qr-label">
