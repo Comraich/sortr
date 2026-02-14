@@ -13,8 +13,9 @@ import LocationList from './LocationList';
 import BoxList from './BoxList';
 import CategoryList from './CategoryList';
 import UserManagement from './UserManagement';
+import UserProfile from './UserProfile';
 import PrintQR from './PrintQR';
-import { isAdmin } from './api/client';
+import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
 function Header() {
@@ -22,7 +23,8 @@ function Header() {
   const location = useLocation();
   const isLoggedIn = !!localStorage.getItem('token');
   const isLoginPage = location.pathname === '/login';
-  const userIsAdmin = isAdmin();
+  const currentUser = getCurrentUser();
+  const userIsAdmin = currentUser?.isAdmin;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -34,13 +36,16 @@ function Header() {
       <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
         <h1>📦 Sortr</h1>
       </Link>
-      {isLoggedIn && !isLoginPage && (
+      {isLoggedIn && !isLoginPage && currentUser && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {userIsAdmin && (
             <Link to="/settings" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
               Settings
             </Link>
           )}
+          <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
+            {currentUser.username}
+          </Link>
           <button onClick={handleLogout} className="btn-secondary">
             Logout
           </button>
@@ -69,6 +74,7 @@ function App() {
                 <Route path="/item/:id" element={<ItemDetail />} />
                 <Route path="/box/:id" element={<BoxDetail />} />
                 <Route path="/print" element={<PrintQR />} />
+                <Route path="/profile" element={<UserProfile />} />
                 <Route path="/settings" element={<ProtectedAdminRoute><Settings /></ProtectedAdminRoute>} />
                 <Route path="/locations" element={<ProtectedAdminRoute><LocationList /></ProtectedAdminRoute>} />
                 <Route path="/boxes" element={<ProtectedAdminRoute><BoxList /></ProtectedAdminRoute>} />

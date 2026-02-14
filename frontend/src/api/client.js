@@ -110,21 +110,34 @@ export const isAuthenticated = () => {
 };
 
 /**
- * Check if user is an admin
- * @returns {boolean}
+ * Get current user info from JWT token
+ * @returns {object|null} User object with id, username, isAdmin
  */
-export const isAdmin = () => {
+export const getCurrentUser = () => {
   const token = localStorage.getItem('token');
-  if (!token) return false;
+  if (!token) return null;
 
   try {
     // Decode JWT token (format: header.payload.signature)
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.isAdmin === true;
+    return {
+      id: payload.id,
+      username: payload.username,
+      isAdmin: payload.isAdmin === true
+    };
   } catch (error) {
     console.error('Error decoding token:', error);
-    return false;
+    return null;
   }
+};
+
+/**
+ * Check if user is an admin
+ * @returns {boolean}
+ */
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  return user ? user.isAdmin : false;
 };
 
 /**
