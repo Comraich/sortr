@@ -138,14 +138,20 @@ function ItemForm() {
     e.preventDefault();
     setError(null);
 
-    // If a box is selected, location comes from the box
-    // If no box but location selected, use the direct location
+    // Build submit data conditionally
     const submitData = {
       name: formData.name,
-      category: formData.category,
-      locationId: formData.boxId ? null : (formData.locationId ? parseInt(formData.locationId) : null),
-      boxId: formData.boxId ? parseInt(formData.boxId) : null
+      category: formData.category
     };
+
+    // If a box is selected, only send boxId
+    if (formData.boxId) {
+      submitData.boxId = parseInt(formData.boxId);
+    }
+    // If no box but location selected, send locationId
+    else if (formData.locationId) {
+      submitData.locationId = parseInt(formData.locationId);
+    }
 
     try {
       if (isEditing) {
