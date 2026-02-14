@@ -11,7 +11,12 @@ const { JWT_EXPIRATION } = require('../config/constants');
 // OAuth Helper - Handles OAuth callback by generating JWT and redirecting to frontend
 const handleOAuthCallback = (req, res) => {
   const token = jwt.sign(
-    { id: req.user.id, username: req.user.username, isAdmin: req.user.isAdmin },
+    {
+      id: req.user.id,
+      username: req.user.username,
+      displayName: req.user.displayName,
+      isAdmin: req.user.isAdmin
+    },
     SECRET_KEY,
     { expiresIn: JWT_EXPIRATION }
   );
@@ -74,12 +79,18 @@ router.post('/google-mobile', async (req, res) => {
     });
 
     // Generate JWT
-    const token = jwt.sign({ id: user.id, username: user.username, isAdmin: user.isAdmin }, SECRET_KEY, { expiresIn: JWT_EXPIRATION });
+    const token = jwt.sign({
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      isAdmin: user.isAdmin
+    }, SECRET_KEY, { expiresIn: JWT_EXPIRATION });
     res.json({
       token,
       user: {
         id: user.id,
         username: user.username,
+        displayName: user.displayName,
         isAdmin: user.isAdmin
       }
     });
@@ -151,7 +162,12 @@ router.post('/login',
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
 
-      const token = jwt.sign({ id: user.id, username: user.username, isAdmin: user.isAdmin }, SECRET_KEY, { expiresIn: JWT_EXPIRATION });
+      const token = jwt.sign({
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        isAdmin: user.isAdmin
+      }, SECRET_KEY, { expiresIn: JWT_EXPIRATION });
       res.json({ token });
     } catch (error) {
       res.status(500).json({ error: error.message });

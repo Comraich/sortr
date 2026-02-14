@@ -44,7 +44,7 @@ function Header() {
             </Link>
           )}
           <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
-            {currentUser.username}
+            {currentUser.displayName || currentUser.username}
           </Link>
           <button onClick={handleLogout} className="btn-secondary">
             Logout

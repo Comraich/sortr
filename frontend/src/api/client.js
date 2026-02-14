@@ -111,7 +111,7 @@ export const isAuthenticated = () => {
 
 /**
  * Get current user info from JWT token
- * @returns {object|null} User object with id, username, isAdmin
+ * @returns {object|null} User object with id, username, displayName, isAdmin
  */
 export const getCurrentUser = () => {
   const token = localStorage.getItem('token');
@@ -123,6 +123,7 @@ export const getCurrentUser = () => {
     return {
       id: payload.id,
       username: payload.username,
+      displayName: payload.displayName,
       isAdmin: payload.isAdmin === true
     };
   } catch (error) {
