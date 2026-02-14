@@ -20,8 +20,8 @@ const getAuthHeaders = () => {
  * Handle API response and check for authentication errors
  */
 const handleResponse = async (response) => {
-  // Handle token expiration or authentication errors
-  if (response.status === 401 || response.status === 403) {
+  // Handle token expiration (401 = Unauthorized - invalid/expired token)
+  if (response.status === 401) {
     localStorage.removeItem('token');
     window.location.href = '/login?expired=true';
     throw new Error('Authentication expired');
@@ -32,6 +32,8 @@ const handleResponse = async (response) => {
 
   // Handle non-OK responses
   if (!response.ok) {
+    // 403 = Forbidden - user is authenticated but lacks permission
+    // Don't log out, just throw error message
     throw new Error(data.error || data.detail || 'Request failed');
   }
 

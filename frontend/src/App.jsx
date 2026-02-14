@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import ErrorBoundary from './ErrorBoundary';
+import ProtectedAdminRoute from './ProtectedAdminRoute';
 import LocationHome from './LocationHome';
 import LocationDetail from './LocationDetail';
 import ItemList from './ItemList';
@@ -68,11 +69,11 @@ function App() {
                 <Route path="/item/:id" element={<ItemDetail />} />
                 <Route path="/box/:id" element={<BoxDetail />} />
                 <Route path="/print" element={<PrintQR />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/locations" element={<LocationList />} />
-                <Route path="/boxes" element={<BoxList />} />
-                <Route path="/categories" element={<CategoryList />} />
-                <Route path="/users" element={<UserManagement />} />
+                <Route path="/settings" element={<ProtectedAdminRoute><Settings /></ProtectedAdminRoute>} />
+                <Route path="/locations" element={<ProtectedAdminRoute><LocationList /></ProtectedAdminRoute>} />
+                <Route path="/boxes" element={<ProtectedAdminRoute><BoxList /></ProtectedAdminRoute>} />
+                <Route path="/categories" element={<ProtectedAdminRoute><CategoryList /></ProtectedAdminRoute>} />
+                <Route path="/users" element={<ProtectedAdminRoute><UserManagement /></ProtectedAdminRoute>} />
               </Routes>
             </ErrorBoundary>
           </div>
