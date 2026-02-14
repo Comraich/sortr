@@ -182,54 +182,43 @@ function UserProfile() {
           Leave blank to keep your current password.
         </p>
 
-        {!user?.googleId && !user?.githubId && !user?.microsoftId ? (
-          <>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-                Current Password
-              </label>
-              <input
-                type="password"
-                value={formData.currentPassword}
-                onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                style={{ width: '100%' }}
-              />
-            </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+            Current Password
+          </label>
+          <input
+            type="password"
+            value={formData.currentPassword}
+            onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+            style={{ width: '100%' }}
+          />
+        </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-                New Password
-              </label>
-              <input
-                type="password"
-                value={formData.newPassword}
-                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                style={{ width: '100%' }}
-                minLength={6}
-              />
-              <small style={{ color: '#6b7280' }}>Minimum 6 characters</small>
-            </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+            New Password
+          </label>
+          <input
+            type="password"
+            value={formData.newPassword}
+            onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+            style={{ width: '100%' }}
+            minLength={6}
+          />
+          <small style={{ color: '#6b7280' }}>Minimum 6 characters</small>
+        </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                style={{ width: '100%' }}
-              />
-            </div>
-          </>
-        ) : (
-          <div style={{ padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '4px', marginBottom: '20px' }}>
-            <p style={{ margin: 0, color: '#6b7280' }}>
-              You're using OAuth authentication ({user.googleId ? 'Google' : user.githubId ? 'GitHub' : 'Microsoft'}).
-              Password changes are not available for OAuth accounts.
-            </p>
-          </div>
-        )}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+            Confirm New Password
+          </label>
+          <input
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            style={{ width: '100%' }}
+          />
+        </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
           <button type="submit" className="btn-primary">

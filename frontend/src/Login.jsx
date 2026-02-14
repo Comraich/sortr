@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiClient, getApiUrl } from './api/client';
+import { apiClient } from './api/client';
 
 function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -10,31 +10,13 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Check for token in URL (from OAuth redirect) or expired session
+  // Check for expired session
   useEffect(() => {
-    // Check hash fragment first (more secure, used by OAuth callbacks)
-    const hash = window.location.hash.substring(1); // Remove the # character
-    const hashParams = new URLSearchParams(hash);
-    let token = hashParams.get('token');
-
-    // Fallback to query params for backwards compatibility
-    if (!token) {
-      token = searchParams.get('token');
-    }
-
     const expired = searchParams.get('expired');
-
-    if (token) {
-      localStorage.setItem('token', token);
-      // Clear the hash to remove token from URL
-      window.location.hash = '';
-      navigate('/');
-    }
-
     if (expired) {
       setError('Your session has expired. Please log in again.');
     }
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,20 +64,6 @@ function Login() {
             {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
           </button>
         </div>
-        
-        <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', textAlign: 'center' }}>
-          <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#666' }}>Or sign in with</p>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#db4437', color: 'white' }} onClick={() => window.location.href = `${getApiUrl()}/auth/google`}>
-            Google
-          </button>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#333', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${getApiUrl()}/auth/github`}>
-            GitHub
-          </button>
-          <button type="button" className="btn-secondary" style={{ width: '100%', backgroundColor: '#0078d4', color: 'white', marginTop: '10px' }} onClick={() => window.location.href = `${getApiUrl()}/auth/microsoft`}>
-            Microsoft
-          </button>
-        </div>
-
       </form>
     </section>
   );

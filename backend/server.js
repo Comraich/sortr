@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const passport = require('passport');
 const helmet = require('helmet');
 require('dotenv').config({ path: '../.env' });
 
@@ -9,11 +8,7 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 // Import models and database
-const { sequelize, User } = require('./models');
-
-// Import and configure Passport
-const configurePassport = require('./config/passport');
-configurePassport(User);
+const { sequelize } = require('./models');
 
 // --- Middleware ---
 // Security headers (helmet should be early in the middleware stack)
@@ -27,7 +22,7 @@ app.use(helmet({
       connectSrc: ["'self'"]
     }
   },
-  crossOriginEmbedderPolicy: false // Allow embedding for OAuth flows
+  crossOriginEmbedderPolicy: false
 }));
 
 // Request logging (skip in test mode to reduce noise)
@@ -64,9 +59,6 @@ app.use(cors({
 // Parse JSON bodies
 app.use(express.json());
 
-// Passport initialization
-app.use(passport.initialize());
-
 // --- Database Sync ---
 // Sync Database (Creates tables if they don't exist)
 // In test mode, use force: true to reset database between tests
@@ -94,11 +86,8 @@ const categoryRoutes = require('./routes/categories');
 
 // Mount routes
 app.use('/health', healthRoutes);
-// Auth routes are mounted at both /auth and /api to support:
-// - OAuth routes: /auth/google, /auth/github, /auth/microsoft
-// - API routes: /api/register, /api/login, /api/auth/google-mobile
-app.use('/auth', authRoutes);
-app.use('/api', authRoutes); // This makes /api/register, /api/login available
+// Auth routes: /api/register, /api/login
+app.use('/api', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/locations', locationRoutes);

@@ -1,104 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body } = require('express-validator');
 const { SECRET_KEY, validate, authLimiter } = require('../middleware');
 const { User } = require('../models');
 const { JWT_EXPIRATION } = require('../config/constants');
-
-// OAuth Helper - Handles OAuth callback by generating JWT and redirecting to frontend
-const handleOAuthCallback = (req, res) => {
-  const token = jwt.sign(
-    {
-      id: req.user.id,
-      username: req.user.username,
-      displayName: req.user.displayName,
-      isAdmin: req.user.isAdmin
-    },
-    SECRET_KEY,
-    { expiresIn: JWT_EXPIRATION }
-  );
-
-  // Redirect to frontend with token in hash fragment (more secure than query param)
-  // Hash fragments are not sent to server, so token won't appear in server logs
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  res.redirect(`${frontendUrl}/login#token=${token}`);
-};
-
-// Google OAuth Routes
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-  handleOAuthCallback
-);
-
-// GitHub OAuth Routes
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
-router.get('/github/callback',
-  passport.authenticate('github', { session: false, failureRedirect: '/login' }),
-  handleOAuthCallback
-);
-
-// Microsoft OAuth Routes
-router.get('/microsoft', passport.authenticate('microsoft', { prompt: 'select_account' }));
-router.get('/microsoft/callback',
-  passport.authenticate('microsoft', { session: false, failureRedirect: '/login' }),
-  handleOAuthCallback
-);
-
-// Google Mobile Auth (for Android/iOS apps)
-router.post('/google-mobile', async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    if (!idToken) {
-      return res.status(400).json({ error: 'ID token is required' });
-    }
-
-    // Verify the ID token with Google
-    const { OAuth2Client } = require('google-auth-library');
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-    const ticket = await client.verifyIdToken({
-      idToken: idToken,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-
-    const payload = ticket.getPayload();
-    const googleId = payload['sub'];
-    const email = payload['email'];
-
-    // Find or create user
-    const [user, created] = await User.findOrCreate({
-      where: { googleId: googleId },
-      defaults: {
-        username: email,
-        googleId: googleId
-      }
-    });
-
-    // Generate JWT
-    const token = jwt.sign({
-      id: user.id,
-      username: user.username,
-      displayName: user.displayName,
-      isAdmin: user.isAdmin
-    }, SECRET_KEY, { expiresIn: JWT_EXPIRATION });
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        displayName: user.displayName,
-        isAdmin: user.isAdmin
-      }
-    });
-  } catch (error) {
-    console.error('Google mobile auth error:', error);
-    res.status(401).json({ error: 'Invalid ID token' });
-  }
-});
 
 // Register
 router.post('/register',
