@@ -96,14 +96,14 @@ function PrintQR() {
           <button
             className={activeTab === 'items' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('items')}
-            style={{ padding: '8px 16px' }}
+            style={{ padding: '5px 10px', fontSize: '0.8rem', width: 'auto' }}
           >
             Items ({items.length})
           </button>
           <button
             className={activeTab === 'boxes' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('boxes')}
-            style={{ padding: '8px 16px' }}
+            style={{ padding: '5px 10px', fontSize: '0.8rem', width: 'auto' }}
           >
             Boxes ({boxes.length})
           </button>
