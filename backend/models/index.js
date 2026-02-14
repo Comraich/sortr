@@ -28,6 +28,10 @@ const Category = require('./Category')(sequelize);
 // Define relationships
 Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
 Box.belongsTo(Location, { foreignKey: 'locationId' });
+
+Location.hasMany(Item, { foreignKey: 'locationId', onDelete: 'SET NULL' });
+Item.belongsTo(Location, { foreignKey: 'locationId' });
+
 Box.hasMany(Item, { foreignKey: 'boxId', onDelete: 'SET NULL' });
 Item.belongsTo(Box, { foreignKey: 'boxId' });
 

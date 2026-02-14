@@ -18,6 +18,7 @@ function ItemForm() {
   const initialFormState = {
     name: '',
     category: '',
+    locationId: '',
     boxId: ''
   };
 
@@ -107,10 +108,14 @@ function ItemForm() {
       setFormData({
         name: data.name,
         category: data.category || '',
+        locationId: data.locationId ? data.locationId.toString() : '',
         boxId: data.boxId ? data.boxId.toString() : ''
       });
 
-      if (data.Box && data.Box.locationId) {
+      // Set selected location from either direct location or box's location
+      if (data.locationId) {
+        setSelectedLocationId(data.locationId.toString());
+      } else if (data.Box && data.Box.locationId) {
         setSelectedLocationId(data.Box.locationId.toString());
       }
     } catch (err) {
@@ -126,16 +131,19 @@ function ItemForm() {
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
     setSelectedLocationId(locationId);
-    setFormData({ ...formData, boxId: '' });
+    setFormData({ ...formData, locationId: locationId, boxId: '' });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
+    // If a box is selected, location comes from the box
+    // If no box but location selected, use the direct location
     const submitData = {
       name: formData.name,
       category: formData.category,
+      locationId: formData.boxId ? null : (formData.locationId ? parseInt(formData.locationId) : null),
       boxId: formData.boxId ? parseInt(formData.boxId) : null
     };
 
@@ -196,7 +204,7 @@ function ItemForm() {
             </select>
           </div>
           <div className="form-group">
-            <label>Box</label>
+            <label>Box (Optional)</label>
             <select
               name="boxId"
               value={formData.boxId}

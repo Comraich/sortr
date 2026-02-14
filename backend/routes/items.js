@@ -11,16 +11,20 @@ router.post('/',
   [
     body('name').trim().notEmpty().withMessage('Item name is required'),
     body('category').optional().trim(),
+    body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
   validate,
   async (req, res) => {
     try {
       const item = await Item.create(req.body);
-      const itemWithBox = await Item.findByPk(item.id, {
-        include: [{ model: Box, include: [{ model: Location }] }]
+      const itemWithRelations = await Item.findByPk(item.id, {
+        include: [
+          { model: Location },
+          { model: Box, include: [{ model: Location }] }
+        ]
       });
-      res.json(itemWithBox);
+      res.json(itemWithRelations);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -35,7 +39,10 @@ router.get('/', authenticateToken, async (req, res) => {
     const items = await Item.findAll({
       offset,
       limit,
-      include: [{ model: Box, include: [{ model: Location }] }]
+      include: [
+        { model: Location },
+        { model: Box, include: [{ model: Location }] }
+      ]
     });
     res.json(items);
   } catch (error) {
@@ -47,7 +54,10 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id, {
-      include: [{ model: Box, include: [{ model: Location }] }]
+      include: [
+        { model: Location },
+        { model: Box, include: [{ model: Location }] }
+      ]
     });
     if (item) {
       res.json(item);
@@ -65,6 +75,7 @@ router.put('/:id',
   [
     body('name').optional().trim().notEmpty().withMessage('Item name cannot be empty'),
     body('category').optional().trim(),
+    body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
   validate,
@@ -73,10 +84,13 @@ router.put('/:id',
       const item = await Item.findByPk(req.params.id);
       if (item) {
         await item.update(req.body);
-        const itemWithBox = await Item.findByPk(item.id, {
-          include: [{ model: Box, include: [{ model: Location }] }]
+        const itemWithRelations = await Item.findByPk(item.id, {
+          include: [
+            { model: Location },
+            { model: Box, include: [{ model: Location }] }
+          ]
         });
-        res.json(itemWithBox);
+        res.json(itemWithRelations);
       } else {
         res.status(404).json({ error: "Item not found" });
       }

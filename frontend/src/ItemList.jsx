@@ -79,7 +79,7 @@ function ItemList() {
               <tr key={item.id}>
                 <td>{item.name}</td>
                 <td>{item.category || '-'}</td>
-                <td>{item.Box?.Location?.name || '-'}</td>
+                <td>{item.Box?.Location?.name || item.Location?.name || '-'}</td>
                 <td>{item.Box?.name || '-'}</td>
                 <td>
                   <button 
