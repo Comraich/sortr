@@ -62,9 +62,14 @@ function LocationHome() {
     <section className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}>Storage Locations</h2>
-        <Link to="/items" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
-          View All Items
-        </Link>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Link to="/print" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
+            Print QR Codes
+          </Link>
+          <Link to="/items" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px' }}>
+            View All Items
+          </Link>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
