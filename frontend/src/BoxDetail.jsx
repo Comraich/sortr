@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import QRCodeDisplay from './QRCodeDisplay';
+import { apiClient, isAuthenticated } from './api/client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
 
 function BoxDetail() {
@@ -18,52 +18,37 @@ function BoxDetail() {
     fetchItems();
   }, [id]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchBox = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      if (response.ok) {
-        const data = await response.json();
-        const foundBox = data.find(b => b.id === parseInt(id));
-        if (foundBox) {
-          setBox(foundBox);
-        } else {
-          setError('Box not found');
-        }
+      const data = await apiClient.get('/api/boxes');
+      const foundBox = data.find(b => b.id === parseInt(id));
+      if (foundBox) {
+        setBox(foundBox);
+      } else {
+        setError('Box not found');
       }
     } catch (err) {
-      setError('Error loading box');
+      setError(err.message || 'Error loading box');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchItems = async () => {
-    try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
 
-      const response = await fetch(`${API_URL}/api/items/`, { headers });
-      if (response.ok) {
-        const data = await response.json();
-        const boxItems = data.filter(item => item.boxId === parseInt(id));
-        setItems(boxItems);
-      }
+    try {
+      const data = await apiClient.get('/api/items/');
+      const boxItems = data.filter(item => item.boxId === parseInt(id));
+      setItems(boxItems);
     } catch (err) {
       console.error('Error fetching items:', err);
     }
@@ -75,23 +60,11 @@ function BoxDetail() {
     }
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (response.ok) {
-        navigate('/');
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete box');
-      }
+      await apiClient.delete(`/api/boxes/${id}`);
+      navigate('/');
     } catch (err) {
       console.error('Error deleting box:', err);
-      alert('Error deleting box');
+      alert(err.message || 'Error deleting box');
     }
   };
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function CategoryList() {
   const [categories, setCategories] = useState([]);
@@ -15,27 +14,14 @@ function CategoryList() {
     fetchCategories();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchCategories = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/categories`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/categories');
       setCategories(data);
     } catch (err) {
       setError('Error fetching categories');
@@ -48,24 +34,11 @@ function CategoryList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/categories`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ name: newCategoryName.trim() })
-      });
-
-      if (response.ok) {
-        setNewCategoryName('');
-        fetchCategories();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to create category');
-      }
+      await apiClient.post('/api/categories', { name: newCategoryName.trim() });
+      setNewCategoryName('');
+      fetchCategories();
     } catch (err) {
-      setError('Error creating category');
+      setError(err.message || 'Error creating category');
     }
   };
 
@@ -74,25 +47,12 @@ function CategoryList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/categories/${id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ name: editingName.trim() })
-      });
-
-      if (response.ok) {
-        setEditingId(null);
-        setEditingName('');
-        fetchCategories();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to update category');
-      }
+      await apiClient.put(`/api/categories/${id}`, { name: editingName.trim() });
+      setEditingId(null);
+      setEditingName('');
+      fetchCategories();
     } catch (err) {
-      setError('Error updating category');
+      setError(err.message || 'Error updating category');
     }
   };
 
@@ -102,22 +62,10 @@ function CategoryList() {
     }
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/categories/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (response.ok) {
-        fetchCategories();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to delete category');
-      }
+      await apiClient.delete(`/api/categories/${id}`);
+      fetchCategories();
     } catch (err) {
-      setError('Error deleting category');
+      setError(err.message || 'Error deleting category');
     }
   };
 

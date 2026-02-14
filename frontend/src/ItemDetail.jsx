@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import QRCodeDisplay from './QRCodeDisplay';
+import { apiClient, isAuthenticated } from './api/client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
 
 function ItemDetail() {
@@ -17,24 +17,16 @@ function ItemDetail() {
   }, [id]);
 
   const fetchItem = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
-
-      const response = await fetch(`${API_URL}/api/items/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      if (response.ok) {
-        const data = await response.json();
-        setItem(data);
-      } else {
-        setError('Item not found');
-      }
+      const data = await apiClient.get(`/api/items/${id}`);
+      setItem(data);
     } catch (err) {
-      setError('Error loading item');
+      setError(err.message || 'Error loading item');
     } finally {
       setLoading(false);
     }
@@ -46,23 +38,11 @@ function ItemDetail() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
-
-      const response = await fetch(`${API_URL}/api/items/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        navigate('/');
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete item');
-      }
+      await apiClient.delete(`/api/items/${id}`);
+      navigate('/');
     } catch (err) {
       console.error('Error deleting item:', err);
-      alert('Error deleting item');
+      alert(err.message || 'Error deleting item');
     }
   };
 

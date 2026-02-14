@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function LocationHome() {
   const [locations, setLocations] = useState([]);
@@ -14,36 +13,17 @@ function LocationHome() {
     fetchData();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchData = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const [locRes, boxRes, itemRes] = await Promise.all([
-        fetch(`${API_URL}/api/locations`, { headers }),
-        fetch(`${API_URL}/api/boxes`, { headers }),
-        fetch(`${API_URL}/api/items/`, { headers })
-      ]);
-
-      if (locRes.status === 401 || boxRes.status === 401 || itemRes.status === 401) {
-        return navigate('/login');
-      }
-
       const [locData, boxData, itemData] = await Promise.all([
-        locRes.json(),
-        boxRes.json(),
-        itemRes.json()
+        apiClient.get('/api/locations'),
+        apiClient.get('/api/boxes'),
+        apiClient.get('/api/items/')
       ]);
 
       setLocations(locData);

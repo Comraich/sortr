@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const passport = require('passport');
+const helmet = require('helmet');
 require('dotenv').config({ path: '../.env' });
 
 const app = express();
@@ -15,6 +16,20 @@ const configurePassport = require('./config/passport');
 configurePassport(User);
 
 // --- Middleware ---
+// Security headers (helmet should be early in the middleware stack)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false // Allow embedding for OAuth flows
+}));
+
 // Request logging (skip in test mode to reduce noise)
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'));

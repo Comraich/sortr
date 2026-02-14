@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function LocationList() {
   const [locations, setLocations] = useState([]);
@@ -15,30 +14,17 @@ function LocationList() {
     fetchLocations();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchLocations = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/locations');
       setLocations(data);
     } catch (err) {
-      setError('Error fetching locations');
+      setError(err.message || 'Error fetching locations');
     }
   };
 
@@ -48,24 +34,11 @@ function LocationList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ name: newLocation.trim() })
-      });
-
-      if (response.ok) {
-        setNewLocation('');
-        fetchLocations();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to create location');
-      }
+      await apiClient.post('/api/locations', { name: newLocation.trim() });
+      setNewLocation('');
+      fetchLocations();
     } catch (err) {
-      setError('Error creating location');
+      setError(err.message || 'Error creating location');
     }
   };
 
@@ -74,25 +47,12 @@ function LocationList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations/${id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ name: editingName.trim() })
-      });
-
-      if (response.ok) {
-        setEditingId(null);
-        setEditingName('');
-        fetchLocations();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to update location');
-      }
+      await apiClient.put(`/api/locations/${id}`, { name: editingName.trim() });
+      setEditingId(null);
+      setEditingName('');
+      fetchLocations();
     } catch (err) {
-      setError('Error updating location');
+      setError(err.message || 'Error updating location');
     }
   };
 
@@ -101,22 +61,10 @@ function LocationList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (response.ok) {
-        fetchLocations();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to delete location');
-      }
+      await apiClient.delete(`/api/locations/${id}`);
+      fetchLocations();
     } catch (err) {
-      setError('Error deleting location');
+      setError(err.message || 'Error deleting location');
     }
   };
 

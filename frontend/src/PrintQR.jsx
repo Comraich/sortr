@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import { apiClient, isAuthenticated } from './api/client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
 
 function PrintQR() {
@@ -18,27 +18,14 @@ function PrintQR() {
     fetchBoxes();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchItems = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/items/`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/items/');
       setItems(data);
     } catch (err) {
       console.error('Error fetching items:', err);
@@ -46,14 +33,13 @@ function PrintQR() {
   };
 
   const fetchBoxes = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/boxes');
       setBoxes(data);
     } catch (err) {
       console.error('Error fetching boxes:', err);

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function LocationDetail() {
   const { id } = useParams();
@@ -16,36 +15,17 @@ function LocationDetail() {
     fetchData();
   }, [id]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchData = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const [locRes, boxRes, itemRes] = await Promise.all([
-        fetch(`${API_URL}/api/locations`, { headers }),
-        fetch(`${API_URL}/api/boxes`, { headers }),
-        fetch(`${API_URL}/api/items/`, { headers })
-      ]);
-
-      if (locRes.status === 401 || boxRes.status === 401 || itemRes.status === 401) {
-        return navigate('/login');
-      }
-
       const [locData, boxData, itemData] = await Promise.all([
-        locRes.json(),
-        boxRes.json(),
-        itemRes.json()
+        apiClient.get('/api/locations'),
+        apiClient.get('/api/boxes'),
+        apiClient.get('/api/items/')
       ]);
 
       const foundLocation = locData.find(l => l.id === parseInt(id));
@@ -57,7 +37,7 @@ function LocationDetail() {
         setItems(itemData);
       }
     } catch (err) {
-      setError('Error loading data');
+      setError(err.message || 'Error loading data');
     } finally {
       setLoading(false);
     }
@@ -77,23 +57,11 @@ function LocationDetail() {
     }
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (response.ok) {
-        navigate('/');
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete location');
-      }
+      await apiClient.delete(`/api/locations/${id}`);
+      navigate('/');
     } catch (err) {
       console.error('Error deleting location:', err);
-      alert('Error deleting location');
+      alert(err.message || 'Error deleting location');
     }
   };
 

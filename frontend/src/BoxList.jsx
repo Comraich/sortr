@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { apiClient, isAuthenticated } from './api/client';
 
 function BoxList() {
   const [boxes, setBoxes] = useState([]);
@@ -19,45 +18,31 @@ function BoxList() {
     fetchBoxes();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchLocations = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/locations`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/locations');
       setLocations(data);
     } catch (err) {
-      setError('Error fetching locations');
+      setError(err.message || 'Error fetching locations');
     }
   };
 
   const fetchBoxes = async () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes`, { headers });
-      if (response.status === 401 || response.status === 403) return navigate('/login');
-
-      const data = await response.json();
+      const data = await apiClient.get('/api/boxes');
       setBoxes(data);
     } catch (err) {
-      setError('Error fetching boxes');
+      setError(err.message || 'Error fetching boxes');
     }
   };
 
@@ -67,25 +52,15 @@ function BoxList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ name: newBoxName.trim(), locationId: parseInt(newBoxLocationId) })
+      await apiClient.post('/api/boxes', {
+        name: newBoxName.trim(),
+        locationId: parseInt(newBoxLocationId)
       });
-
-      if (response.ok) {
-        setNewBoxName('');
-        setNewBoxLocationId('');
-        fetchBoxes();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to create box');
-      }
+      setNewBoxName('');
+      setNewBoxLocationId('');
+      fetchBoxes();
     } catch (err) {
-      setError('Error creating box');
+      setError(err.message || 'Error creating box');
     }
   };
 
@@ -94,26 +69,16 @@ function BoxList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes/${id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ name: editingName.trim(), locationId: parseInt(editingLocationId) })
+      await apiClient.put(`/api/boxes/${id}`, {
+        name: editingName.trim(),
+        locationId: parseInt(editingLocationId)
       });
-
-      if (response.ok) {
-        setEditingId(null);
-        setEditingName('');
-        setEditingLocationId('');
-        fetchBoxes();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to update box');
-      }
+      setEditingId(null);
+      setEditingName('');
+      setEditingLocationId('');
+      fetchBoxes();
     } catch (err) {
-      setError('Error updating box');
+      setError(err.message || 'Error updating box');
     }
   };
 
@@ -122,22 +87,10 @@ function BoxList() {
     setError(null);
 
     try {
-      const headers = getAuthHeaders();
-      if (!headers) return;
-
-      const response = await fetch(`${API_URL}/api/boxes/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (response.ok) {
-        fetchBoxes();
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to delete box');
-      }
+      await apiClient.delete(`/api/boxes/${id}`);
+      fetchBoxes();
     } catch (err) {
-      setError('Error deleting box');
+      setError(err.message || 'Error deleting box');
     }
   };
 
