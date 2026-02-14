@@ -47,9 +47,17 @@ function LocationDetail() {
     return items.filter(item => item.boxId === boxId).length;
   };
 
-  const totalItems = items.filter(item =>
+  // Items in boxes
+  const itemsInBoxes = items.filter(item =>
     boxes.some(box => box.id === item.boxId)
-  ).length;
+  );
+
+  // Items directly in this location (no box)
+  const itemsInLocation = items.filter(item =>
+    item.locationId === parseInt(id) && !item.boxId
+  );
+
+  const totalItems = itemsInBoxes.length + itemsInLocation.length;
 
   const handleDelete = async () => {
     if (!window.confirm(`Are you sure you want to delete "${location.name}"? This action cannot be undone.`)) {
@@ -108,6 +116,41 @@ function LocationDetail() {
         </div>
       </div>
 
+      {/* Items directly in location (no box) */}
+      {itemsInLocation.length > 0 && (
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Items in Location (No Box)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itemsInLocation.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <Link to={`/item/${item.id}`} style={{ textDecoration: 'none', color: '#2563eb', fontWeight: '500' }}>
+                      {item.name}
+                    </Link>
+                  </td>
+                  <td>{item.category || '-'}</td>
+                  <td>
+                    <Link to={`/edit/${item.id}`} className="btn-small" style={{ textDecoration: 'none' }}>
+                      Edit
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Boxes in location */}
+      <h3 style={{ marginBottom: '15px' }}>Boxes</h3>
       {boxes.length === 0 ? (
         <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
           <p style={{ color: '#6b7280', margin: '0 0 15px 0' }}>No boxes in this location yet.</p>
@@ -148,7 +191,7 @@ function LocationDetail() {
         <Link to="/" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px 15px' }}>
           Back to Locations
         </Link>
-        {boxes.length === 0 && (
+        {boxes.length === 0 && itemsInLocation.length === 0 && (
           <button
             onClick={handleDelete}
             className="btn-danger"
