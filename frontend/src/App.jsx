@@ -11,6 +11,7 @@ import Settings from './Settings';
 import LocationList from './LocationList';
 import BoxList from './BoxList';
 import CategoryList from './CategoryList';
+import UserManagement from './UserManagement';
 import PrintQR from './PrintQR';
 import './App.css';
 
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/locations" element={<LocationList />} />
                 <Route path="/boxes" element={<BoxList />} />
                 <Route path="/categories" element={<CategoryList />} />
+                <Route path="/users" element={<UserManagement />} />
               </Routes>
             </ErrorBoundary>
           </div>

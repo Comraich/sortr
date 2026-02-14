@@ -85,6 +85,7 @@ const dbReady = sequelize.sync(syncOptions).then(() => {
 // --- Routes ---
 const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 const locationRoutes = require('./routes/locations');
 const boxRoutes = require('./routes/boxes');
 const itemRoutes = require('./routes/items');
@@ -97,6 +98,7 @@ app.use('/health', healthRoutes);
 // - API routes: /api/register, /api/login, /api/auth/google-mobile
 app.use('/auth', authRoutes);
 app.use('/api', authRoutes); // This makes /api/register, /api/login available
+app.use('/api/users', userRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/boxes', boxRoutes);
 app.use('/api/items', itemRoutes);

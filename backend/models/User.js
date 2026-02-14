@@ -22,6 +22,23 @@ module.exports = (sequelize) => {
     microsoftId: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
+    },
+    displayName: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   });
 

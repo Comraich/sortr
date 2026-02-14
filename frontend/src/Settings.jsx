@@ -62,6 +62,24 @@ function Settings() {
             Manage item categories for organization
           </p>
         </Link>
+
+        <Link
+          to="/users"
+          style={{
+            display: 'block',
+            padding: '15px 20px',
+            backgroundColor: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: '#1f2937'
+          }}
+        >
+          <strong>User Management</strong>
+          <p style={{ margin: '5px 0 0', fontSize: '0.9rem', color: '#6b7280' }}>
+            Manage user accounts and permissions (Admin only)
+          </p>
+        </Link>
       </div>
 
       <div style={{ marginTop: '30px' }}>

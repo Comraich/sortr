@@ -14,11 +14,18 @@ const configurePassport = (User) => {
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
+        // Check if this is the first user
+        const userCount = await User.count();
+        const isFirstUser = userCount === 0;
+
         const [user, created] = await User.findOrCreate({
           where: { googleId: profile.id },
           defaults: {
             username: profile.emails[0].value,
-            googleId: profile.id
+            googleId: profile.id,
+            email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
+            displayName: profile.displayName || null,
+            isAdmin: isFirstUser
           }
         });
         return cb(null, user);
@@ -36,11 +43,18 @@ const configurePassport = (User) => {
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
+        // Check if this is the first user
+        const userCount = await User.count();
+        const isFirstUser = userCount === 0;
+
         const [user, created] = await User.findOrCreate({
           where: { githubId: profile.id },
           defaults: {
             username: profile.username,
-            githubId: profile.id
+            githubId: profile.id,
+            email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
+            displayName: profile.displayName || profile.username || null,
+            isAdmin: isFirstUser
           }
         });
         return cb(null, user);
@@ -60,13 +74,20 @@ const configurePassport = (User) => {
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
+        // Check if this is the first user
+        const userCount = await User.count();
+        const isFirstUser = userCount === 0;
+
         const [user, created] = await User.findOrCreate({
           where: { microsoftId: profile.id },
           defaults: {
-            username: profile.emails && profile.emails.length > 0 
-              ? profile.emails[0].value 
+            username: profile.emails && profile.emails.length > 0
+              ? profile.emails[0].value
               : profile.userPrincipalName,
-            microsoftId: profile.id
+            microsoftId: profile.id,
+            email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : profile.userPrincipalName,
+            displayName: profile.displayName || null,
+            isAdmin: isFirstUser
           }
         });
         return cb(null, user);
