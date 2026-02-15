@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient, isAuthenticated } from './api/client';
+import RecentlyViewed from './RecentlyViewed';
 
 function LocationHome() {
   const [locations, setLocations] = useState([]);
@@ -89,6 +90,9 @@ function LocationHome() {
           <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Items</div>
         </div>
       </div>
+
+      {/* Recently Viewed Items */}
+      <RecentlyViewed />
 
       {locations.length === 0 ? (
         <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f9fafb', borderRadius: '8px' }}>

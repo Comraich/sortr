@@ -20,6 +20,7 @@ import ExportImport from './ExportImport';
 import Dashboard from './Dashboard';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import { ThemeProvider, useTheme } from './ThemeContext';
+import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
@@ -94,17 +95,16 @@ function FloatingActionButton() {
   );
 }
 
-function App() {
-  return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <Router>
-          <div className="container">
-            <Header />
+function AppContent() {
+  useKeyboardShortcuts();
 
-          <div className="main-content">
-            <ErrorBoundary>
-              <Routes>
+  return (
+    <div className="container">
+      <Header />
+
+      <div className="main-content">
+        <ErrorBoundary>
+          <Routes>
                 <Route path="/" element={<LocationHome />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/location/:id" element={<LocationDetail />} />
@@ -127,14 +127,23 @@ function App() {
             </ErrorBoundary>
           </div>
 
-          {/* Floating Action Button for mobile */}
-          <FloatingActionButton />
+      {/* Floating Action Button for mobile */}
+      <FloatingActionButton />
 
-          {/* PWA Install Prompt */}
-          <PWAInstallPrompt />
-        </div>
-      </Router>
-    </ErrorBoundary>
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ErrorBoundary>
+        <Router>
+          <AppContent />
+        </Router>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

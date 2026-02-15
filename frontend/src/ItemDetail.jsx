@@ -4,6 +4,7 @@ import QRCodeDisplay from './QRCodeDisplay';
 import ImageUpload from './ImageUpload';
 import ActivityFeed from './ActivityFeed';
 import { apiClient, isAuthenticated } from './api/client';
+import { addToRecentlyViewed } from './RecentlyViewed';
 
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
 
@@ -29,6 +30,8 @@ function ItemDetail() {
     try {
       const data = await apiClient.get(`/api/items/${id}`);
       setItem(data);
+      // Add to recently viewed
+      addToRecentlyViewed(id);
     } catch (err) {
       setError(err.message || 'Error loading item');
     } finally {
