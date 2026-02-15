@@ -33,12 +33,18 @@ function QRCodeDisplay({ value, label, size = 150 }) {
   };
 
   const printQR = () => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+
+    // Get SVG as string using outerHTML (safer than innerHTML)
+    const svgString = svg.outerHTML;
+
+    // Create HTML content for printing
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Print QR Code - ${label}</title>
+          <title>Print QR Code - ${label.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</title>
           <style>
             body {
               display: flex;
@@ -64,9 +70,9 @@ function QRCodeDisplay({ value, label, size = 150 }) {
         </head>
         <body>
           <div class="qr-container">
-            <h2>${label}</h2>
-            ${qrRef.current?.innerHTML || ''}
-            <p>${value}</p>
+            <h2>${label.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h2>
+            ${svgString}
+            <p>${value.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
           </div>
           <script>
             window.onload = () => {
@@ -76,8 +82,20 @@ function QRCodeDisplay({ value, label, size = 150 }) {
           </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+
+    // Use Blob URL approach instead of document.write()
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const printWindow = window.open(blobUrl, '_blank');
+
+    // Clean up the Blob URL after the window is loaded
+    if (printWindow) {
+      printWindow.onload = () => {
+        URL.revokeObjectURL(blobUrl);
+      };
+    }
   };
 
   const copyLink = async () => {

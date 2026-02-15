@@ -86,16 +86,15 @@ router.put(
 
       // Handle password change
       if (newPassword) {
-        // Verify current password for non-OAuth users
-        if (!user.password) {
-          return res.status(400).json({
-            error: 'Cannot change password for OAuth accounts'
-          });
-        }
-
         if (!currentPassword) {
           return res.status(400).json({
             error: 'Current password is required to set a new password'
+          });
+        }
+
+        if (!user.password) {
+          return res.status(400).json({
+            error: 'No password set for this account'
           });
         }
 

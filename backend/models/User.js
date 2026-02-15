@@ -11,18 +11,6 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    googleId: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    githubId: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    microsoftId: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     email: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -61,9 +61,8 @@ router.post('/login',
       const user = await User.findOne({ where: { username } });
       if (!user) return res.status(400).json({ error: 'User not found' });
 
-      // Check if user has a password (not OAuth-only)
       if (!user.password) {
-        return res.status(400).json({ error: 'Please use OAuth to sign in (Google, GitHub, or Microsoft)' });
+        return res.status(400).json({ error: 'Invalid credentials' });
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
