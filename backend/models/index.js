@@ -27,6 +27,10 @@ const Category = require('./Category')(sequelize);
 const Activity = require('./Activity')(sequelize);
 
 // Define relationships
+// Location hierarchy (self-referencing)
+Location.hasMany(Location, { as: 'children', foreignKey: 'parentId', onDelete: 'SET NULL' });
+Location.belongsTo(Location, { as: 'parent', foreignKey: 'parentId' });
+
 Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
 Box.belongsTo(Location, { foreignKey: 'locationId' });
 

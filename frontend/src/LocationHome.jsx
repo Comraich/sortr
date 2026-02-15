@@ -51,6 +51,21 @@ function LocationHome() {
   const totalBoxes = boxes.length;
   const totalItems = items.length;
 
+  // Build hierarchy tree for display
+  const buildHierarchy = (locations, parentId = null, depth = 0) => {
+    const children = locations.filter(loc => loc.parentId === parentId);
+    const result = [];
+
+    children.forEach(child => {
+      result.push({ ...child, depth });
+      result.push(...buildHierarchy(locations, child.id, depth + 1));
+    });
+
+    return result;
+  };
+
+  const hierarchicalLocations = buildHierarchy(locations);
+
   if (loading) {
     return (
       <section className="card">
@@ -112,12 +127,15 @@ function LocationHome() {
             </tr>
           </thead>
           <tbody>
-            {locations.map((location) => (
+            {hierarchicalLocations.map((location) => (
               <tr key={location.id}>
                 <td>
-                  <Link to={`/location/${location.id}`} style={{ textDecoration: 'none', color: '#2563eb', fontWeight: '500' }}>
-                    {location.name}
-                  </Link>
+                  <div style={{ marginLeft: `${location.depth * 20}px`, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {location.depth > 0 && <span style={{ color: '#9ca3af' }}>└─</span>}
+                    <Link to={`/location/${location.id}`} style={{ textDecoration: 'none', color: '#2563eb', fontWeight: '500' }}>
+                      {location.name}
+                    </Link>
+                  </div>
                 </td>
                 <td style={{ textAlign: 'center' }}>{getBoxCount(location.id)}</td>
                 <td style={{ textAlign: 'center' }}>{getItemCount(location.id)}</td>

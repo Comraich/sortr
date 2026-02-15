@@ -5,8 +5,10 @@ import { apiClient, isAuthenticated } from './api/client';
 function LocationList() {
   const [locations, setLocations] = useState([]);
   const [newLocation, setNewLocation] = useState('');
+  const [newParentId, setNewParentId] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [editingParentId, setEditingParentId] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -34,8 +36,13 @@ function LocationList() {
     setError(null);
 
     try {
-      await apiClient.post('/api/locations', { name: newLocation.trim() });
+      const payload = { name: newLocation.trim() };
+      if (newParentId) {
+        payload.parentId = parseInt(newParentId);
+      }
+      await apiClient.post('/api/locations', payload);
       setNewLocation('');
+      setNewParentId('');
       fetchLocations();
     } catch (err) {
       setError(err.message || 'Error creating location');
@@ -47,9 +54,14 @@ function LocationList() {
     setError(null);
 
     try {
-      await apiClient.put(`/api/locations/${id}`, { name: editingName.trim() });
+      const payload = { name: editingName.trim() };
+      if (editingParentId !== undefined) {
+        payload.parentId = editingParentId ? parseInt(editingParentId) : null;
+      }
+      await apiClient.put(`/api/locations/${id}`, payload);
       setEditingId(null);
       setEditingName('');
+      setEditingParentId('');
       fetchLocations();
     } catch (err) {
       setError(err.message || 'Error updating location');
@@ -71,12 +83,60 @@ function LocationList() {
   const startEditing = (location) => {
     setEditingId(location.id);
     setEditingName(location.name);
+    setEditingParentId(location.parentId || '');
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditingName('');
+    setEditingParentId('');
   };
+
+  // Build hierarchy tree for display
+  const buildHierarchy = (locations, parentId = null, depth = 0) => {
+    const children = locations.filter(loc => loc.parentId === parentId);
+    const result = [];
+
+    children.forEach(child => {
+      result.push({ ...child, depth });
+      result.push(...buildHierarchy(locations, child.id, depth + 1));
+    });
+
+    return result;
+  };
+
+  // Get breadcrumb path for a location
+  const getBreadcrumb = (locationId) => {
+    const parts = [];
+    let currentId = locationId;
+
+    while (currentId) {
+      const loc = locations.find(l => l.id === currentId);
+      if (!loc) break;
+      parts.unshift(loc.name);
+      currentId = loc.parentId;
+    }
+
+    return parts.join(' > ');
+  };
+
+  // Get available parent options (excluding self and descendants to prevent cycles)
+  const getAvailableParents = (excludeId = null) => {
+    if (!excludeId) return locations;
+
+    const descendants = new Set([excludeId]);
+    const findDescendants = (id) => {
+      locations.filter(loc => loc.parentId === id).forEach(child => {
+        descendants.add(child.id);
+        findDescendants(child.id);
+      });
+    };
+    findDescendants(excludeId);
+
+    return locations.filter(loc => !descendants.has(loc.id));
+  };
+
+  const hierarchicalLocations = buildHierarchy(locations);
 
   return (
     <section className="card list-section">
@@ -89,17 +149,31 @@ function LocationList() {
 
       {error && <div className="error-message">{error}</div>}
 
-      <form onSubmit={handleCreate} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <input
-          type="text"
-          value={newLocation}
-          onChange={(e) => setNewLocation(e.target.value)}
-          placeholder="New location name"
-          style={{ flex: 1 }}
-        />
-        <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '8px 16px' }}>
-          Add Location
-        </button>
+      <form onSubmit={handleCreate} style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <input
+            type="text"
+            value={newLocation}
+            onChange={(e) => setNewLocation(e.target.value)}
+            placeholder="New location name"
+            style={{ flex: 2 }}
+          />
+          <select
+            value={newParentId}
+            onChange={(e) => setNewParentId(e.target.value)}
+            style={{ flex: 1 }}
+          >
+            <option value="">-- No Parent (Top Level) --</option>
+            {locations.map(loc => (
+              <option key={loc.id} value={loc.id}>
+                {getBreadcrumb(loc.id)}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '8px 16px' }}>
+            Add Location
+          </button>
+        </div>
       </form>
 
       {locations.length === 0 ? (
@@ -108,23 +182,51 @@ function LocationList() {
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Name (Hierarchy)</th>
+              <th>Parent</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {locations.map((location) => (
+            {hierarchicalLocations.map((location) => (
               <tr key={location.id} className={editingId === location.id ? 'editing-row' : ''}>
                 <td>
                   {editingId === location.id ? (
-                    <input
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      autoFocus
-                    />
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ marginLeft: `${location.depth * 20}px`, color: '#9ca3af' }}>
+                        {location.depth > 0 && '└─ '}
+                      </span>
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        style={{ flex: 1 }}
+                        autoFocus
+                      />
+                    </div>
                   ) : (
-                    location.name
+                    <div style={{ marginLeft: `${location.depth * 20}px` }}>
+                      {location.depth > 0 && <span style={{ color: '#9ca3af', marginRight: '6px' }}>└─</span>}
+                      {location.name}
+                    </div>
+                  )}
+                </td>
+                <td>
+                  {editingId === location.id ? (
+                    <select
+                      value={editingParentId}
+                      onChange={(e) => setEditingParentId(e.target.value)}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="">-- No Parent --</option>
+                      {getAvailableParents(location.id).map(loc => (
+                        <option key={loc.id} value={loc.id}>
+                          {getBreadcrumb(loc.id)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    location.parent?.name || '-'
                   )}
                 </td>
                 <td>

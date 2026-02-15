@@ -6,6 +6,7 @@ function LocationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [location, setLocation] = useState(null);
+  const [allLocations, setAllLocations] = useState([]);
   const [boxes, setBoxes] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,7 @@ function LocationDetail() {
         setError('Location not found');
       } else {
         setLocation(foundLocation);
+        setAllLocations(locData);
         setBoxes(boxData.filter(box => box.locationId === parseInt(id)));
         setItems(itemData);
       }
@@ -41,6 +43,23 @@ function LocationDetail() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Build breadcrumb trail
+  const getBreadcrumbs = () => {
+    if (!location) return [];
+
+    const trail = [];
+    let currentId = location.id;
+
+    while (currentId) {
+      const loc = allLocations.find(l => l.id === currentId);
+      if (!loc) break;
+      trail.unshift(loc);
+      currentId = loc.parentId;
+    }
+
+    return trail;
   };
 
   const getItemCount = (boxId) => {
@@ -97,11 +116,24 @@ function LocationDetail() {
     <section className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <Link to="/" style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>
-            Locations
-          </Link>
-          <span style={{ color: '#6b7280', margin: '0 8px' }}>/</span>
-          <h2 style={{ margin: 0, display: 'inline' }}>{location.name}</h2>
+          <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '5px' }}>
+            <Link to="/" style={{ color: '#6b7280', textDecoration: 'none' }}>
+              Locations
+            </Link>
+            {getBreadcrumbs().map((loc, idx) => (
+              <span key={loc.id}>
+                <span style={{ margin: '0 8px' }}>/</span>
+                {idx === getBreadcrumbs().length - 1 ? (
+                  <span style={{ color: '#374151', fontWeight: '500' }}>{loc.name}</span>
+                ) : (
+                  <Link to={`/location/${loc.id}`} style={{ color: '#6b7280', textDecoration: 'none' }}>
+                    {loc.name}
+                  </Link>
+                )}
+              </span>
+            ))}
+          </div>
+          <h2 style={{ margin: 0 }}>{location.name}</h2>
         </div>
       </div>
 
