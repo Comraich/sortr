@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import QRCodeDisplay from './QRCodeDisplay';
 import ImageUpload from './ImageUpload';
 import ActivityFeed from './ActivityFeed';
+import ShareModal from './ShareModal';
+import CommentsSection from './CommentsSection';
 import { apiClient, isAuthenticated } from './api/client';
 import { addToRecentlyViewed } from './RecentlyViewed';
 
@@ -15,6 +17,7 @@ function ItemDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [similarItems, setSimilarItems] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     fetchItem();
@@ -115,6 +118,9 @@ function ItemDetail() {
           )}
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowShareModal(true)} className="btn-secondary btn-small">
+            Share
+          </button>
           <Link to={`/edit/${item.id}`} className="btn-small" style={{ textDecoration: 'none' }}>
             Edit
           </Link>
@@ -199,6 +205,11 @@ function ItemDetail() {
         </div>
       )}
 
+      {/* Comments Section */}
+      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+        <CommentsSection itemId={item.id} />
+      </div>
+
       {/* Activity History */}
       <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
         <ActivityFeed entityType="item" entityId={item.id} limit={20} />
@@ -209,6 +220,16 @@ function ItemDetail() {
           Back to Inventory
         </Link>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal
+          resourceType="item"
+          resourceId={item.id}
+          resourceName={item.name}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </section>
   );
 }

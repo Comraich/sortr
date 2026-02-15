@@ -21,6 +21,7 @@ import Dashboard from './Dashboard';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import { ThemeProvider, useTheme } from './ThemeContext';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
+import NotificationsDropdown from './NotificationsDropdown';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
@@ -54,6 +55,7 @@ function Header() {
           <Link to="/export-import" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
             📁 Export/Import
           </Link>
+          <NotificationsDropdown />
           <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
             {currentUser.displayName || currentUser.username}
           </Link>

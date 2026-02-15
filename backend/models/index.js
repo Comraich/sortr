@@ -25,6 +25,9 @@ const Item = require('./Item')(sequelize);
 const User = require('./User')(sequelize);
 const Category = require('./Category')(sequelize);
 const Activity = require('./Activity')(sequelize);
+const Share = require('./Share')(sequelize);
+const Comment = require('./Comment')(sequelize);
+const Notification = require('./Notification')(sequelize);
 
 // Define relationships
 // Location hierarchy (self-referencing)
@@ -44,6 +47,21 @@ Item.belongsTo(Box, { foreignKey: 'boxId' });
 Activity.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(Activity, { foreignKey: 'userId' });
 
+// Share associations
+Share.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Share.belongsTo(User, { foreignKey: 'sharedByUserId', as: 'sharedBy' });
+User.hasMany(Share, { foreignKey: 'userId' });
+
+// Comment associations
+Comment.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Comment.belongsTo(Item, { foreignKey: 'itemId' });
+User.hasMany(Comment, { foreignKey: 'userId' });
+Item.hasMany(Comment, { foreignKey: 'itemId' });
+
+// Notification associations
+Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(Notification, { foreignKey: 'userId' });
+
 // Export sequelize instance and models
 module.exports = {
   sequelize,
@@ -52,5 +70,8 @@ module.exports = {
   Item,
   User,
   Category,
-  Activity
+  Activity,
+  Share,
+  Comment,
+  Notification
 };

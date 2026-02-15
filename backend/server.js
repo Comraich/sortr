@@ -90,6 +90,9 @@ const activityRoutes = require('./routes/activities');
 const exportRoutes = require('./routes/export');
 const statsRoutes = require('./routes/stats');
 const suggestionsRoutes = require('./routes/suggestions');
+const shareRoutes = require('./routes/shares');
+const commentRoutes = require('./routes/comments');
+const notificationRoutes = require('./routes/notifications');
 
 // Mount routes
 app.use('/health', healthRoutes);
@@ -105,6 +108,9 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/suggestions', suggestionsRoutes);
+app.use('/api/shares', shareRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // --- Error Handling Middleware ---
 // 404 handler - must be after all routes
