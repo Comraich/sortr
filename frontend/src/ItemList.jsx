@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import FilterBar from './FilterBar';
 import { apiClient, isAuthenticated } from './api/client';
 
 function ItemList() {
   const [items, setItems] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedItems, setSelectedItems] = useState(new Set());
@@ -14,10 +15,13 @@ function ItemList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchItems();
     fetchLocationsAndBoxes();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    fetchItems();
+  }, [filters]);
 
   const fetchItems = async () => {
     if (!isAuthenticated()) {
@@ -28,7 +32,19 @@ function ItemList() {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiClient.get('/api/items/');
+
+      // Build query string from filters
+      const queryParams = new URLSearchParams();
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          queryParams.append(key, filters[key]);
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const url = `/api/items/${queryString ? '?' + queryString : ''}`;
+
+      const data = await apiClient.get(url);
       setItems(data);
     } catch (error) {
       console.error("Error fetching inventory:", error);
@@ -36,6 +52,10 @@ function ItemList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
   };
 
   const fetchLocationsAndBoxes = async () => {
@@ -84,7 +104,7 @@ function ItemList() {
   };
 
   const selectAll = () => {
-    const allIds = new Set(filteredItems.map(item => item.id));
+    const allIds = new Set(items.map(item => item.id));
     setSelectedItems(allIds);
   };
 
@@ -160,21 +180,8 @@ function ItemList() {
     }
   };
 
-  // Filter items based on search query
-  const filteredItems = items.filter(item => {
-    if (!searchQuery) return true;
-
-    const query = searchQuery.toLowerCase();
-    const matchesName = item.name.toLowerCase().includes(query);
-    const matchesCategory = item.category?.toLowerCase().includes(query);
-    const matchesLocation = (item.Box?.Location?.name || item.Location?.name)?.toLowerCase().includes(query);
-    const matchesBox = item.Box?.name?.toLowerCase().includes(query);
-
-    return matchesName || matchesCategory || matchesLocation || matchesBox;
-  });
-
   const selectedCount = selectedItems.size;
-  const allSelected = filteredItems.length > 0 && selectedCount === filteredItems.length;
+  const allSelected = items.length > 0 && selectedCount === items.length;
 
   return (
     <section className="card list-section">
@@ -190,27 +197,13 @@ function ItemList() {
         </Link>
       </div>
 
-      {/* Search bar */}
-      <div style={{ marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Search items by name, category, location, or box..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px 15px',
-            fontSize: '1rem',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px'
-          }}
-        />
-        {searchQuery && (
-          <div style={{ marginTop: '8px', fontSize: '0.9rem', color: '#6b7280' }}>
-            Found {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
-          </div>
-        )}
-      </div>
+      {/* Advanced Filters */}
+      <FilterBar
+        onFilterChange={handleFilterChange}
+        locations={locations}
+        boxes={boxes}
+        categories={categories}
+      />
 
       {/* Bulk Actions Toolbar */}
       {selectedCount > 0 && (
@@ -264,8 +257,8 @@ function ItemList() {
         <p>Loading items...</p>
       ) : error ? (
         <div className="error-message">{error}</div>
-      ) : filteredItems.length === 0 ? (
-        <p>{searchQuery ? 'No items match your search.' : 'No items in storage.'}</p>
+      ) : items.length === 0 ? (
+        <p>No items found.</p>
       ) : (
         <>
           {/* Selection Controls */}
@@ -318,7 +311,7 @@ function ItemList() {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((item) => (
+              {items.map((item) => (
                 <tr key={item.id} style={{ backgroundColor: selectedItems.has(item.id) ? '#eff6ff' : 'transparent' }}>
                   <td>
                     <input

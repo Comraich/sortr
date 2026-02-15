@@ -62,21 +62,125 @@ router.post('/',
   }
 );
 
-// Read All Items
+// Read All Items (with advanced filtering)
 router.get('/', authenticateToken, async (req, res) => {
   const offset = parseInt(req.query.skip) || 0;
   const limit = parseInt(req.query.limit) || DEFAULT_QUERY_LIMIT;
+
+  // Build filter conditions
+  const where = {};
+  const { Op } = require('sequelize');
+
+  // Filter by category
+  if (req.query.category) {
+    where.category = req.query.category;
+  }
+
+  // Filter by location
+  if (req.query.locationId) {
+    // Items can be in a location directly OR through a box
+    // We'll handle this in the include
+  }
+
+  // Filter by box
+  if (req.query.boxId) {
+    where.boxId = parseInt(req.query.boxId);
+  }
+
+  // Filter by hasBox (items with or without boxes)
+  if (req.query.hasBox === 'true') {
+    where.boxId = { [Op.not]: null };
+  } else if (req.query.hasBox === 'false') {
+    where.boxId = null;
+  }
+
+  // Filter by hasLocation (items with or without locations)
+  if (req.query.hasLocation === 'true') {
+    where.locationId = { [Op.not]: null };
+  } else if (req.query.hasLocation === 'false') {
+    where.locationId = null;
+  }
+
+  // Date range filters
+  if (req.query.dateFrom || req.query.dateTo) {
+    where.createdAt = {};
+    if (req.query.dateFrom) {
+      where.createdAt[Op.gte] = new Date(req.query.dateFrom);
+    }
+    if (req.query.dateTo) {
+      // Add one day to include the entire end date
+      const endDate = new Date(req.query.dateTo);
+      endDate.setDate(endDate.getDate() + 1);
+      where.createdAt[Op.lt] = endDate;
+    }
+  }
+
+  // Search query (searches name, category, description)
+  if (req.query.search) {
+    where[Op.or] = [
+      { name: { [Op.like]: `%${req.query.search}%` } },
+      { category: { [Op.like]: `%${req.query.search}%` } },
+      { description: { [Op.like]: `%${req.query.search}%` } }
+    ];
+  }
+
+  // Sorting
+  let order = [['createdAt', 'DESC']]; // Default: newest first
+  if (req.query.sortBy) {
+    const sortField = req.query.sortBy;
+    const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
+
+    if (['name', 'category', 'createdAt', 'updatedAt'].includes(sortField)) {
+      order = [[sortField, sortOrder]];
+    }
+  }
+
   try {
+    // Build include conditions
+    const include = [
+      {
+        model: Location,
+        required: false
+      },
+      {
+        model: Box,
+        include: [{ model: Location }],
+        required: false
+      }
+    ];
+
+    // If filtering by locationId, we need to check both direct location and box's location
+    if (req.query.locationId) {
+      const locationId = parseInt(req.query.locationId);
+
+      // Get all boxes in this location
+      const Box = require('../models').Box;
+      const boxesInLocation = await Box.findAll({
+        where: { locationId },
+        attributes: ['id']
+      });
+      const boxIds = boxesInLocation.map(b => b.id);
+
+      // Items are in this location if:
+      // 1. Their locationId matches, OR
+      // 2. Their box is in this location
+      where[Op.or] = [
+        { locationId },
+        { boxId: { [Op.in]: boxIds } }
+      ];
+    }
+
     const items = await Item.findAll({
+      where,
       offset,
       limit,
-      include: [
-        { model: Location },
-        { model: Box, include: [{ model: Location }] }
-      ]
+      include,
+      order
     });
+
     res.json(items);
   } catch (error) {
+    console.error('Error fetching items with filters:', error);
     res.status(500).json({ error: error.message });
   }
 });
