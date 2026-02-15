@@ -18,6 +18,7 @@ import PrintQR from './PrintQR';
 import Scanner from './Scanner';
 import ExportImport from './ExportImport';
 import Dashboard from './Dashboard';
+import PWAInstallPrompt from './PWAInstallPrompt';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
@@ -67,6 +68,27 @@ function Header() {
   );
 }
 
+function FloatingActionButton() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  // Don't show FAB on login page or scanner page
+  if (!isLoggedIn || location.pathname === '/login' || location.pathname === '/scan') {
+    return null;
+  }
+
+  return (
+    <button
+      className="fab"
+      onClick={() => navigate('/scan')}
+      title="Quick Scan"
+    >
+      📷
+    </button>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -98,6 +120,12 @@ function App() {
               </Routes>
             </ErrorBoundary>
           </div>
+
+          {/* Floating Action Button for mobile */}
+          <FloatingActionButton />
+
+          {/* PWA Install Prompt */}
+          <PWAInstallPrompt />
         </div>
       </Router>
     </ErrorBoundary>
