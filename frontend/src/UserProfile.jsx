@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient, isAuthenticated, getCurrentUser } from './api/client';
+import { useTheme } from './ThemeContext';
 
 function UserProfile() {
   const [user, setUser] = useState(null);
@@ -17,6 +18,7 @@ function UserProfile() {
   });
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
+  const { darkMode, toggleDarkMode } = useTheme();
 
   useEffect(() => {
     fetchUserProfile();
@@ -174,6 +176,26 @@ function UserProfile() {
             <strong>Admin User</strong>
           </div>
         )}
+
+        <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
+
+        <h3 style={{ marginBottom: '15px' }}>Appearance</h3>
+        <div style={{ marginBottom: '30px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={darkMode}
+              onChange={toggleDarkMode}
+              style={{ width: 'auto', cursor: 'pointer' }}
+            />
+            <span style={{ fontWeight: '500' }}>
+              {darkMode ? '🌙 Dark Mode' : '☀️ Light Mode'}
+            </span>
+          </label>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '8px', marginLeft: '30px' }}>
+            Your preference will be saved for future visits
+          </p>
+        </div>
 
         <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
 

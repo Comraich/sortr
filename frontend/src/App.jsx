@@ -28,7 +28,6 @@ import './App.css';
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { darkMode, toggleDarkMode } = useTheme();
   const isLoggedIn = !!localStorage.getItem('token');
   const isLoginPage = location.pathname === '/login';
   const currentUser = getCurrentUser();
@@ -64,9 +63,6 @@ function Header() {
               Settings
             </Link>
           )}
-          <button onClick={toggleDarkMode} className="btn-secondary" title={darkMode ? 'Light mode' : 'Dark mode'}>
-            {darkMode ? '☀️' : '🌙'}
-          </button>
           <button onClick={handleLogout} className="btn-secondary">
             Logout
           </button>
