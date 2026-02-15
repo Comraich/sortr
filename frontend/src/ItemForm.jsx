@@ -26,10 +26,13 @@ function ItemForm() {
     category: '',
     description: '',
     locationId: '',
-    boxId: ''
+    boxId: '',
+    tags: [],
+    isFavorite: false
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     fetchLocations();
@@ -205,7 +208,9 @@ function ItemForm() {
         category: data.category || '',
         description: data.description || '',
         locationId: data.locationId ? data.locationId.toString() : '',
-        boxId: data.boxId ? data.boxId.toString() : ''
+        boxId: data.boxId ? data.boxId.toString() : '',
+        tags: data.tags || [],
+        isFavorite: data.isFavorite || false
       });
 
       // Set selected location from either direct location or box's location
@@ -230,6 +235,28 @@ function ItemForm() {
     setFormData({ ...formData, locationId: locationId, boxId: '' });
   };
 
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim();
+      if (!formData.tags.includes(newTag)) {
+        setFormData({ ...formData, tags: [...formData.tags, newTag] });
+      }
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+
+  const toggleFavorite = () => {
+    setFormData({ ...formData, isFavorite: !formData.isFavorite });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -238,7 +265,9 @@ function ItemForm() {
     const submitData = {
       name: formData.name,
       category: formData.category,
-      description: formData.description
+      description: formData.description,
+      tags: formData.tags.length > 0 ? formData.tags : null,
+      isFavorite: formData.isFavorite
     };
 
     // If a box is selected, only send boxId
@@ -359,6 +388,71 @@ function ItemForm() {
             }}
           />
         </div>
+
+        {/* Tags Input */}
+        <div className="form-group">
+          <label>Tags</label>
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleAddTag}
+            placeholder="Type a tag and press Enter"
+          />
+          {formData.tags.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+              {formData.tags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #3b82f6',
+                    borderRadius: '12px',
+                    fontSize: '0.85rem',
+                    color: '#1e40af'
+                  }}
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#1e40af',
+                      cursor: 'pointer',
+                      padding: '0',
+                      fontSize: '1rem',
+                      lineHeight: '1',
+                      fontWeight: 'bold'
+                    }}
+                    title="Remove tag"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Favorite Toggle */}
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={formData.isFavorite}
+              onChange={toggleFavorite}
+              style={{ width: 'auto', cursor: 'pointer' }}
+            />
+            <span>Mark as Favorite ⭐</span>
+          </label>
+        </div>
+
         <div className="form-row">
           <div className="form-group">
             <label>Storage Location</label>

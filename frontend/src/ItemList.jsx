@@ -305,6 +305,7 @@ function ItemList() {
                 </th>
                 <th>Name</th>
                 <th>Category</th>
+                <th>Tags</th>
                 <th>Location</th>
                 <th>Box #</th>
                 <th>Actions</th>
@@ -321,8 +322,39 @@ function ItemList() {
                       style={{ cursor: 'pointer' }}
                     />
                   </td>
-                  <td>{item.name}</td>
+                  <td>
+                    {item.isFavorite && <span style={{ marginRight: '6px', color: '#fbbf24' }}>⭐</span>}
+                    {item.name}
+                  </td>
                   <td>{item.category || '-'}</td>
+                  <td>
+                    {item.tags && item.tags.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {item.tags.slice(0, 3).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              padding: '2px 8px',
+                              backgroundColor: '#eff6ff',
+                              border: '1px solid #3b82f6',
+                              borderRadius: '10px',
+                              fontSize: '0.75rem',
+                              color: '#1e40af'
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {item.tags.length > 3 && (
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            +{item.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td>{item.Box?.Location?.name || item.Location?.name || '-'}</td>
                   <td>{item.Box?.name || '-'}</td>
                   <td>

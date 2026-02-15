@@ -24,6 +24,16 @@ module.exports = (sequelize) => {
       allowNull: true,
       defaultValue: null
     },
+    tags: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null
+    },
+    isFavorite: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     locationId: {
       type: DataTypes.INTEGER,
       allowNull: true

@@ -86,7 +86,31 @@ function ItemDetail() {
   return (
     <section className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0 }}>{item.name}</h2>
+        <div>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {item.isFavorite && <span style={{ color: '#fbbf24', fontSize: '1.5rem' }}>⭐</span>}
+            {item.name}
+          </h2>
+          {item.tags && item.tags.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
+              {item.tags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    padding: '4px 12px',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #3b82f6',
+                    borderRadius: '12px',
+                    fontSize: '0.85rem',
+                    color: '#1e40af'
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Link to={`/edit/${item.id}`} className="btn-small" style={{ textDecoration: 'none' }}>
             Edit

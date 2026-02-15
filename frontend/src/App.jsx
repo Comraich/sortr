@@ -19,12 +19,14 @@ import Scanner from './Scanner';
 import ExportImport from './ExportImport';
 import Dashboard from './Dashboard';
 import PWAInstallPrompt from './PWAInstallPrompt';
+import { ThemeProvider, useTheme } from './ThemeContext';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { darkMode, toggleDarkMode } = useTheme();
   const isLoggedIn = !!localStorage.getItem('token');
   const isLoginPage = location.pathname === '/login';
   const currentUser = getCurrentUser();
@@ -59,6 +61,9 @@ function Header() {
               Settings
             </Link>
           )}
+          <button onClick={toggleDarkMode} className="btn-secondary" title={darkMode ? 'Light mode' : 'Dark mode'}>
+            {darkMode ? '☀️' : '🌙'}
+          </button>
           <button onClick={handleLogout} className="btn-secondary">
             Logout
           </button>
@@ -91,10 +96,11 @@ function FloatingActionButton() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <Router>
-        <div className="container">
-          <Header />
+    <ThemeProvider>
+      <ErrorBoundary>
+        <Router>
+          <div className="container">
+            <Header />
 
           <div className="main-content">
             <ErrorBoundary>
@@ -129,6 +135,7 @@ function App() {
         </div>
       </Router>
     </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

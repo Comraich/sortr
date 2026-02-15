@@ -4,6 +4,47 @@
   --danger: #ef4444;
   --bg: #f3f4f6;
   --card-bg: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+}
+
+/* Dark Mode */
+.dark-mode {
+  --primary: #3b82f6;
+  --secondary: #9ca3af;
+  --danger: #f87171;
+  --bg: #111827;
+  --card-bg: #1f2937;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+}
+
+.dark-mode body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+}
+
+.dark-mode .card {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #374151;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark-mode table th {
+  background-color: #374151;
+}
+
+.dark-mode table tr:hover {
+  background-color: #374151;
 }
 
 body {
