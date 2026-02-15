@@ -59,6 +59,9 @@ app.use(cors({
 // Parse JSON bodies
 app.use(express.json());
 
+// Serve uploaded images as static files
+app.use('/uploads', express.static('uploads'));
+
 // --- Database Sync ---
 // Sync Database (Creates tables if they don't exist)
 // In test mode, use force: true to reset database between tests

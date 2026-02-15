@@ -19,6 +19,11 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    images: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null
+    },
     locationId: {
       type: DataTypes.INTEGER,
       allowNull: true

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import QRCodeDisplay from './QRCodeDisplay';
+import ImageUpload from './ImageUpload';
 import { apiClient, isAuthenticated } from './api/client';
 
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
@@ -30,6 +31,10 @@ function ItemDetail() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImagesUpdate = (newImages) => {
+    setItem({ ...item, images: newImages });
   };
 
   const handleDelete = async () => {
@@ -111,6 +116,13 @@ function ItemDetail() {
           label={item.name}
         />
       </div>
+
+      {/* Image Upload Section */}
+      <ImageUpload
+        itemId={item.id}
+        existingImages={item.images || []}
+        onImagesUpdate={handleImagesUpdate}
+      />
 
       <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
         <Link to="/" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px 15px' }}>
