@@ -35,24 +35,16 @@ router.get('/', authenticateToken, async (req, res) => {
       Item.count({ where: { boxId: null } }),
       Item.count({ where: { locationId: null } }),
 
-      // Empty boxes
-      Box.findAll({
-        attributes: ['id', 'name', 'locationId'],
-        include: [
-          {
-            model: Item,
-            attributes: [],
-            required: false
-          },
-          {
-            model: Location,
-            attributes: ['name']
-          }
-        ],
-        group: ['Box.id', 'Location.id'],
-        having: Sequelize.literal('COUNT(Items.id) = 0'),
-        raw: false
-      }),
+      // Empty boxes - using raw SQL
+      sequelize.query(
+        `SELECT b.id, b.name, l.name as locationName
+         FROM Boxes b
+         LEFT JOIN Items i ON b.id = i.boxId
+         LEFT JOIN Locations l ON b.locationId = l.id
+         GROUP BY b.id, b.name, l.name
+         HAVING COUNT(i.id) = 0`,
+        { type: Sequelize.QueryTypes.SELECT }
+      ),
 
       // Items by category
       Item.findAll({
@@ -80,30 +72,18 @@ router.get('/', authenticateToken, async (req, res) => {
         { type: Sequelize.QueryTypes.SELECT }
       ),
 
-      // Items per box (top 10 most filled)
-      Box.findAll({
-        attributes: [
-          'id',
-          'name',
-          [Sequelize.fn('COUNT', Sequelize.col('Items.id')), 'itemCount']
-        ],
-        include: [
-          {
-            model: Item,
-            attributes: [],
-            required: false
-          },
-          {
-            model: Location,
-            attributes: ['name']
-          }
-        ],
-        group: ['Box.id', 'Location.id'],
-        having: Sequelize.literal('COUNT(Items.id) > 0'),
-        order: [[Sequelize.fn('COUNT', Sequelize.col('Items.id')), 'DESC']],
-        limit: 10,
-        raw: false
-      }),
+      // Items per box (top 10 most filled) - using raw SQL
+      sequelize.query(
+        `SELECT b.id, b.name, l.name as locationName, COUNT(i.id) as itemCount
+         FROM Boxes b
+         LEFT JOIN Items i ON b.id = i.boxId
+         LEFT JOIN Locations l ON b.locationId = l.id
+         GROUP BY b.id, b.name, l.name
+         HAVING COUNT(i.id) > 0
+         ORDER BY COUNT(i.id) DESC
+         LIMIT 10`,
+        { type: Sequelize.QueryTypes.SELECT }
+      ),
 
       // Recently added items
       Item.findAll({
@@ -165,13 +145,13 @@ router.get('/', authenticateToken, async (req, res) => {
       topBoxes: itemsByBox.map(box => ({
         id: box.id,
         name: box.name,
-        location: box.Location?.name || '-',
-        count: parseInt(box.get('itemCount'))
+        location: box.locationName || '-',
+        count: parseInt(box.itemCount)
       })),
       emptyBoxes: emptyBoxes.map(box => ({
         id: box.id,
         name: box.name,
-        location: box.Location?.name || '-'
+        location: box.locationName || '-'
       })),
       recentItems: recentItems.map(item => ({
         id: item.id,
