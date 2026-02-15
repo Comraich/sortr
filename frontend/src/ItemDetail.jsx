@@ -13,9 +13,11 @@ function ItemDetail() {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [similarItems, setSimilarItems] = useState([]);
 
   useEffect(() => {
     fetchItem();
+    fetchSimilarItems();
   }, [id]);
 
   const fetchItem = async () => {
@@ -31,6 +33,15 @@ function ItemDetail() {
       setError(err.message || 'Error loading item');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSimilarItems = async () => {
+    try {
+      const data = await apiClient.get(`/api/suggestions/similar/${id}`);
+      setSimilarItems(data.similar || []);
+    } catch (err) {
+      console.error('Error fetching similar items:', err);
     }
   };
 
@@ -124,6 +135,42 @@ function ItemDetail() {
         existingImages={item.images || []}
         onImagesUpdate={handleImagesUpdate}
       />
+
+      {/* Similar Items */}
+      {similarItems.length > 0 && (
+        <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '15px' }}>🔍 Similar Items</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {similarItems.map((similar) => (
+              <Link
+                key={similar.id}
+                to={`/item/${similar.id}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 12px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  border: '1px solid #e5e7eb'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '500' }}>{similar.name}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                    {similar.category || 'Uncategorized'} • {similar.location} {similar.box !== '-' ? `• ${similar.box}` : ''}
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '500' }}>
+                  {similar.similarity} match
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Activity History */}
       <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>

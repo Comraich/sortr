@@ -15,6 +15,12 @@ function ItemForm() {
   const [filteredBoxes, setFilteredBoxes] = useState([]);
   const [selectedLocationId, setSelectedLocationId] = useState('');
 
+  // Smart suggestions state
+  const [categorySuggestions, setCategorySuggestions] = useState([]);
+  const [duplicateWarnings, setDuplicateWarnings] = useState([]);
+  const [boxSuggestions, setBoxSuggestions] = useState([]);
+  const [emptyBoxes, setEmptyBoxes] = useState([]);
+
   const initialFormState = {
     name: '',
     category: '',
@@ -56,6 +62,32 @@ function ItemForm() {
     }
   }, [preselectedBoxId, boxes, isEditing]);
 
+  // Fetch suggestions when item name changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.name && !isEditing) {
+        fetchCategorySuggestions(formData.name);
+        checkDuplicates(formData.name);
+      }
+    }, 500); // Debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.name, isEditing]);
+
+  // Fetch box suggestions when category or location changes
+  useEffect(() => {
+    if (formData.category) {
+      fetchBoxSuggestions(formData.category, selectedLocationId);
+    }
+  }, [formData.category, selectedLocationId]);
+
+  // Fetch empty boxes when location changes
+  useEffect(() => {
+    if (selectedLocationId) {
+      fetchEmptyBoxes(selectedLocationId);
+    }
+  }, [selectedLocationId]);
+
   const fetchLocations = async () => {
     if (!isAuthenticated()) {
       navigate('/login');
@@ -95,6 +127,68 @@ function ItemForm() {
       setCategories(data);
     } catch (err) {
       setError('Error fetching categories');
+    }
+  };
+
+  // Fetch category suggestions based on item name
+  const fetchCategorySuggestions = async (name) => {
+    if (!name || name.length < 3) {
+      setCategorySuggestions([]);
+      return;
+    }
+
+    try {
+      const data = await apiClient.get(`/api/suggestions/category?name=${encodeURIComponent(name)}`);
+      setCategorySuggestions(data.suggestions || []);
+    } catch (err) {
+      console.error('Error fetching category suggestions:', err);
+    }
+  };
+
+  // Check for duplicate items
+  const checkDuplicates = async (name) => {
+    if (!name || name.length < 3) {
+      setDuplicateWarnings([]);
+      return;
+    }
+
+    try {
+      const excludeParam = id ? `&excludeId=${id}` : '';
+      const data = await apiClient.get(`/api/suggestions/duplicates?name=${encodeURIComponent(name)}${excludeParam}`);
+      setDuplicateWarnings(data.duplicates || []);
+    } catch (err) {
+      console.error('Error checking duplicates:', err);
+    }
+  };
+
+  // Fetch box suggestions based on category and location
+  const fetchBoxSuggestions = async (category, locationId) => {
+    if (!category) {
+      setBoxSuggestions([]);
+      return;
+    }
+
+    try {
+      const locationParam = locationId ? `&locationId=${locationId}` : '';
+      const data = await apiClient.get(`/api/suggestions/box-for-item?category=${encodeURIComponent(category)}${locationParam}`);
+      setBoxSuggestions(data.suggestions || []);
+    } catch (err) {
+      console.error('Error fetching box suggestions:', err);
+    }
+  };
+
+  // Fetch empty boxes in selected location
+  const fetchEmptyBoxes = async (locationId) => {
+    if (!locationId) {
+      setEmptyBoxes([]);
+      return;
+    }
+
+    try {
+      const data = await apiClient.get(`/api/suggestions/empty-boxes?locationId=${locationId}`);
+      setEmptyBoxes(data.emptyBoxes || []);
+    } catch (err) {
+      console.error('Error fetching empty boxes:', err);
     }
   };
 
@@ -185,7 +279,24 @@ function ItemForm() {
             onChange={handleInputChange}
             required
           />
+
+          {/* Duplicate Warnings */}
+          {duplicateWarnings.length > 0 && (
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px' }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#991b1b', marginBottom: '5px' }}>
+                ⚠️ Potential duplicates found:
+              </div>
+              {duplicateWarnings.map(dup => (
+                <div key={dup.id} style={{ fontSize: '0.85rem', color: '#7f1d1d', marginBottom: '4px' }}>
+                  • <a href={`/item/${dup.id}`} target="_blank" rel="noopener noreferrer" style={{ color: '#991b1b', textDecoration: 'underline' }}>
+                    {dup.name}
+                  </a> ({dup.similarity} match) - {dup.location}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
         <div className="form-group">
           <label>Category</label>
           <select
@@ -198,6 +309,36 @@ function ItemForm() {
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
+
+          {/* Category Suggestions */}
+          {!formData.category && categorySuggestions.length > 0 && (
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px' }}>
+              <div style={{ fontSize: '0.85rem', color: '#0c4a6e', marginBottom: '5px' }}>
+                💡 Suggested categories:
+              </div>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {categorySuggestions.map((sug, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, category: sug.category })}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '0.85rem',
+                      backgroundColor: 'white',
+                      border: '1px solid #3b82f6',
+                      borderRadius: '12px',
+                      color: '#3b82f6',
+                      cursor: 'pointer'
+                    }}
+                    title={sug.reason}
+                  >
+                    {sug.category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="form-group">
           <label>Description</label>
@@ -246,6 +387,71 @@ function ItemForm() {
             </select>
           </div>
         </div>
+
+        {/* Box Suggestions */}
+        {formData.category && boxSuggestions.length > 0 && !formData.boxId && (
+          <div style={{ marginTop: '10px', marginBottom: '15px', padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+            <div style={{ fontSize: '0.85rem', color: '#065f46', marginBottom: '8px' }}>
+              💡 Suggested boxes for {formData.category} items:
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {boxSuggestions.map((sug) => (
+                <button
+                  key={sug.boxId}
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, boxId: sug.boxId.toString() });
+                    const box = boxes.find(b => b.id === sug.boxId);
+                    if (box) {
+                      setSelectedLocationId(box.locationId.toString());
+                    }
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '0.85rem',
+                    backgroundColor: 'white',
+                    border: '1px solid #10b981',
+                    borderRadius: '6px',
+                    color: '#065f46',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <strong>{sug.boxName}</strong> - {sug.location} ({sug.reason})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty Boxes */}
+        {selectedLocationId && emptyBoxes.length > 0 && !formData.boxId && (
+          <div style={{ marginTop: '10px', marginBottom: '15px', padding: '10px', backgroundColor: '#fefce8', border: '1px solid #fde047', borderRadius: '6px' }}>
+            <div style={{ fontSize: '0.85rem', color: '#713f12', marginBottom: '8px' }}>
+              📦 Empty boxes in this location:
+            </div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {emptyBoxes.slice(0, 5).map((box) => (
+                <button
+                  key={box.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, boxId: box.id.toString() })}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '0.85rem',
+                    backgroundColor: 'white',
+                    border: '1px solid #eab308',
+                    borderRadius: '12px',
+                    color: '#713f12',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {box.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="form-actions">
           <button type="submit" className="btn-primary">
