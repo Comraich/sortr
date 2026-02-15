@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { apiClient, isAuthenticated } from './api/client';
+import ExpiringItemsWidget from './ExpiringItemsWidget';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6'];
 
@@ -98,6 +99,11 @@ function Dashboard() {
           <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>{stats.overview.totalCategories}</div>
           <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Categories</div>
         </div>
+      </div>
+
+      {/* Expiring Items Widget */}
+      <div style={{ marginBottom: '20px' }}>
+        <ExpiringItemsWidget />
       </div>
 
       {/* Storage Utilization */}

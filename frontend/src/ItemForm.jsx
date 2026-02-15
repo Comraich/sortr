@@ -25,6 +25,7 @@ function ItemForm() {
     name: '',
     category: '',
     description: '',
+    expirationDate: '',
     locationId: '',
     boxId: '',
     tags: [],
@@ -207,6 +208,7 @@ function ItemForm() {
         name: data.name,
         category: data.category || '',
         description: data.description || '',
+        expirationDate: data.expirationDate || '',
         locationId: data.locationId ? data.locationId.toString() : '',
         boxId: data.boxId ? data.boxId.toString() : '',
         tags: data.tags || [],
@@ -266,6 +268,7 @@ function ItemForm() {
       name: formData.name,
       category: formData.category,
       description: formData.description,
+      expirationDate: formData.expirationDate || null,
       tags: formData.tags.length > 0 ? formData.tags : null,
       isFavorite: formData.isFavorite
     };
@@ -387,6 +390,28 @@ function ItemForm() {
               resize: 'vertical'
             }}
           />
+        </div>
+
+        {/* Expiration Date */}
+        <div className="form-group">
+          <label>Expiration Date (Optional)</label>
+          <input
+            type="date"
+            name="expirationDate"
+            value={formData.expirationDate}
+            onChange={handleInputChange}
+          />
+          {formData.expirationDate && (
+            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '4px' }}>
+              {new Date(formData.expirationDate) < new Date() ? (
+                <span style={{ color: '#ef4444', fontWeight: '500' }}>⚠️ This item has expired</span>
+              ) : (
+                <span>
+                  Expires in {Math.ceil((new Date(formData.expirationDate) - new Date()) / (1000 * 60 * 60 * 24))} day(s)
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Tags Input */}

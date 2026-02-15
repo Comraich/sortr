@@ -93,6 +93,7 @@ const suggestionsRoutes = require('./routes/suggestions');
 const shareRoutes = require('./routes/shares');
 const commentRoutes = require('./routes/comments');
 const notificationRoutes = require('./routes/notifications');
+const expirationRoutes = require('./routes/expiration');
 
 // Mount routes
 app.use('/health', healthRoutes);
@@ -111,6 +112,7 @@ app.use('/api/suggestions', suggestionsRoutes);
 app.use('/api/shares', shareRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/expiration', expirationRoutes);
 
 // --- Error Handling Middleware ---
 // 404 handler - must be after all routes

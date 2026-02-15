@@ -34,6 +34,10 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: false
     },
+    expirationDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
     locationId: {
       type: DataTypes.INTEGER,
       allowNull: true

@@ -148,6 +148,19 @@ function ItemDetail() {
               ) : '-'}
             </span>
           </div>
+          {item.expirationDate && (
+            <div className="detail-row" style={{ marginTop: '10px' }}>
+              <span className="detail-label">Expiration: </span>
+              <span className="detail-value" style={{
+                fontWeight: '500',
+                color: new Date(item.expirationDate) < new Date() ? '#ef4444' : '#10b981'
+              }}>
+                {new Date(item.expirationDate) < new Date() ? '⚠️ ' : ''}
+                {new Date(item.expirationDate).toLocaleDateString()}
+                {new Date(item.expirationDate) < new Date() ? ' (Expired)' : ''}
+              </span>
+            </div>
+          )}
           {item.description && (
             <div className="detail-row" style={{ marginTop: '15px' }}>
               <span className="detail-label">Description: </span>
