@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const { Item, Box, Location, Category, Activity, User } = require('../models');
+const { sequelize, Item, Box, Location, Category, Activity, User } = require('../models');
 const { Op, Sequelize } = require('sequelize');
 
 /**
@@ -69,25 +69,16 @@ router.get('/', authenticateToken, async (req, res) => {
         raw: true
       }),
 
-      // Items by location
-      Location.findAll({
-        attributes: [
-          'id',
-          'name',
-          [Sequelize.fn('COUNT', Sequelize.col('Items.id')), 'itemCount']
-        ],
-        include: [
-          {
-            model: Item,
-            attributes: [],
-            required: false
-          }
-        ],
-        group: ['Location.id'],
-        order: [[Sequelize.fn('COUNT', Sequelize.col('Items.id')), 'DESC']],
-        limit: 10,
-        raw: true
-      }),
+      // Items by location - using raw SQL to avoid Sequelize complexity
+      sequelize.query(
+        `SELECT l.id, l.name, COUNT(i.id) as itemCount
+         FROM Locations l
+         LEFT JOIN Items i ON l.id = i.locationId
+         GROUP BY l.id, l.name
+         ORDER BY COUNT(i.id) DESC
+         LIMIT 10`,
+        { type: Sequelize.QueryTypes.SELECT }
+      ),
 
       // Items per box (top 10 most filled)
       Box.findAll({
