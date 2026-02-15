@@ -80,6 +80,24 @@ function Settings() {
             Manage user accounts and permissions (Admin only)
           </p>
         </Link>
+
+        <Link
+          to="/export-import"
+          style={{
+            display: 'block',
+            padding: '15px 20px',
+            backgroundColor: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: '#1f2937'
+          }}
+        >
+          <strong>📁 Export / Import</strong>
+          <p style={{ margin: '5px 0 0', fontSize: '0.9rem', color: '#6b7280' }}>
+            Export inventory data or import from CSV files
+          </p>
+        </Link>
       </div>
 
       <div style={{ marginTop: '30px' }}>

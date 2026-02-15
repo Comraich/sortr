@@ -51,9 +51,6 @@ function Header() {
           <Link to="/scan" className="btn-primary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
             📷 Scan
           </Link>
-          <Link to="/export-import" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
-            📁 Export/Import
-          </Link>
           <NotificationsDropdown />
           <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
             {currentUser.displayName || currentUser.username}
