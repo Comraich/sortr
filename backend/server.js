@@ -86,6 +86,7 @@ const locationRoutes = require('./routes/locations');
 const boxRoutes = require('./routes/boxes');
 const itemRoutes = require('./routes/items');
 const categoryRoutes = require('./routes/categories');
+const activityRoutes = require('./routes/activities');
 
 // Mount routes
 app.use('/health', healthRoutes);
@@ -97,6 +98,7 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/boxes', boxRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/activities', activityRoutes);
 
 // --- Error Handling Middleware ---
 // 404 handler - must be after all routes

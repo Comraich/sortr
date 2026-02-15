@@ -24,6 +24,7 @@ const Box = require('./Box')(sequelize);
 const Item = require('./Item')(sequelize);
 const User = require('./User')(sequelize);
 const Category = require('./Category')(sequelize);
+const Activity = require('./Activity')(sequelize);
 
 // Define relationships
 Location.hasMany(Box, { foreignKey: 'locationId', onDelete: 'RESTRICT' });
@@ -35,6 +36,10 @@ Item.belongsTo(Location, { foreignKey: 'locationId' });
 Box.hasMany(Item, { foreignKey: 'boxId', onDelete: 'SET NULL' });
 Item.belongsTo(Box, { foreignKey: 'boxId' });
 
+// Activity associations
+Activity.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(Activity, { foreignKey: 'userId' });
+
 // Export sequelize instance and models
 module.exports = {
   sequelize,
@@ -42,5 +47,6 @@ module.exports = {
   Box,
   Item,
   User,
-  Category
+  Category,
+  Activity
 };

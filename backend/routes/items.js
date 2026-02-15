@@ -7,6 +7,7 @@ const { body } = require('express-validator');
 const { authenticateToken, validate } = require('../middleware');
 const { Item, Box, Location } = require('../models');
 const { DEFAULT_QUERY_LIMIT } = require('../config/constants');
+const { logActivity, logCustomActivity } = require('../middleware/activityLogger');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -46,6 +47,7 @@ router.post('/',
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
   validate,
+  logActivity('item', 'create'),
   async (req, res) => {
     try {
       const item = await Item.create(req.body);
@@ -215,6 +217,7 @@ router.put('/:id',
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
   validate,
+  logActivity('item', 'update'),
   async (req, res) => {
     try {
       const item = await Item.findByPk(req.params.id);
@@ -241,6 +244,27 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (item) {
+      // Log activity before deletion
+      await logCustomActivity({
+        userId: req.user?.id,
+        action: 'delete',
+        entityType: 'item',
+        entityId: item.id,
+        entityName: item.name,
+        changes: {
+          deleted: {
+            name: item.name,
+            category: item.category,
+            boxId: item.boxId,
+            locationId: item.locationId
+          }
+        },
+        metadata: {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      });
+
       // Delete associated images from filesystem
       if (item.images && Array.isArray(item.images)) {
         for (const filename of item.images) {
@@ -299,6 +323,23 @@ router.post('/:id/images',
       // Update item with new images
       await item.update({ images: updatedImages });
 
+      // Log activity
+      await logCustomActivity({
+        userId: req.user?.id,
+        action: 'upload_image',
+        entityType: 'item',
+        entityId: item.id,
+        entityName: item.name,
+        changes: {
+          imagesAdded: newImages,
+          totalImages: updatedImages.length
+        },
+        metadata: {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      });
+
       res.json({
         message: 'Images uploaded successfully',
         images: updatedImages
@@ -342,6 +383,23 @@ router.delete('/:id/images/:filename',
       } catch (err) {
         console.error(`Error deleting file ${filename}:`, err);
       }
+
+      // Log activity
+      await logCustomActivity({
+        userId: req.user?.id,
+        action: 'delete_image',
+        entityType: 'item',
+        entityId: item.id,
+        entityName: item.name,
+        changes: {
+          imageDeleted: filename,
+          remainingImages: updatedImages.length
+        },
+        metadata: {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      });
 
       res.json({
         message: 'Image deleted successfully',

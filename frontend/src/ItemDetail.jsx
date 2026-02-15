@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import QRCodeDisplay from './QRCodeDisplay';
 import ImageUpload from './ImageUpload';
+import ActivityFeed from './ActivityFeed';
 import { apiClient, isAuthenticated } from './api/client';
 
 const APP_URL = import.meta.env.VITE_APP_URL || (window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, ''));
@@ -123,6 +124,11 @@ function ItemDetail() {
         existingImages={item.images || []}
         onImagesUpdate={handleImagesUpdate}
       />
+
+      {/* Activity History */}
+      <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+        <ActivityFeed entityType="item" entityId={item.id} limit={20} />
+      </div>
 
       <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
         <Link to="/" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px 15px' }}>
