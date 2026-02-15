@@ -110,7 +110,7 @@ th { background-color: #f9fafb; font-weight: 600; }
 
 button {
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: opacity 0.2s;
@@ -122,12 +122,14 @@ button:hover { opacity: 0.9; }
   padding: 10px;
   background-color: var(--primary);
   color: white;
+  border-radius: 6px;
 }
 
 .btn-secondary {
   padding: 10px;
   background-color: var(--secondary);
   color: white;
+  border-radius: 6px;
 }
 
 .btn-small {
@@ -139,6 +141,7 @@ button:hover { opacity: 0.9; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
 }
 
 .btn-danger {
@@ -146,6 +149,7 @@ button:hover { opacity: 0.9; }
   color: white;
   padding: 5px 10px;
   font-size: 0.8rem;
+  border-radius: 6px;
 }
 
 /* QR Code Selection Grid */
@@ -439,7 +443,7 @@ button:hover { opacity: 0.9; }
   background-color: var(--primary);
   color: white;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   font-weight: 500;
