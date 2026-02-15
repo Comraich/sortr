@@ -86,7 +86,7 @@ router.get('/', authenticateToken, async (req, res) => {
         group: ['Location.id'],
         order: [[Sequelize.fn('COUNT', Sequelize.col('Items.id')), 'DESC']],
         limit: 10,
-        raw: false
+        raw: true
       }),
 
       // Items per box (top 10 most filled)
@@ -169,7 +169,7 @@ router.get('/', authenticateToken, async (req, res) => {
       itemsByLocation: itemsByLocation.map(loc => ({
         id: loc.id,
         name: loc.name,
-        count: parseInt(loc.get('itemCount'))
+        count: parseInt(loc.itemCount)
       })),
       topBoxes: itemsByBox.map(box => ({
         id: box.id,
