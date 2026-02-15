@@ -45,11 +45,11 @@ function Header() {
       </Link>
       {isLoggedIn && !isLoginPage && currentUser && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Link to="/dashboard" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
-            📊 Dashboard
-          </Link>
           <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
             {currentUser.displayName || currentUser.username}
+          </Link>
+          <Link to="/dashboard" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
+            📊 Dashboard
           </Link>
           <NotificationsDropdown />
           {userIsAdmin && (
