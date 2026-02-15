@@ -16,6 +16,7 @@ import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
 import PrintQR from './PrintQR';
 import Scanner from './Scanner';
+import ExportImport from './ExportImport';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
@@ -41,6 +42,9 @@ function Header() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <Link to="/scan" className="btn-primary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
             📷 Scan
+          </Link>
+          <Link to="/export-import" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
+            📁 Export/Import
           </Link>
           <Link to="/profile" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
             {currentUser.displayName || currentUser.username}
@@ -80,6 +84,7 @@ function App() {
                 <Route path="/print" element={<PrintQR />} />
                 <Route path="/scan" element={<Scanner />} />
                 <Route path="/profile" element={<UserProfile />} />
+                <Route path="/export-import" element={<ExportImport />} />
                 <Route path="/settings" element={<ProtectedAdminRoute><Settings /></ProtectedAdminRoute>} />
                 <Route path="/locations" element={<ProtectedAdminRoute><LocationList /></ProtectedAdminRoute>} />
                 <Route path="/boxes" element={<ProtectedAdminRoute><BoxList /></ProtectedAdminRoute>} />
