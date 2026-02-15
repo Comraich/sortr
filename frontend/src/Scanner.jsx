@@ -272,7 +272,7 @@ function Scanner() {
               placeholder="Paste URL or enter item/box/location ID..."
               style={{ flex: 1 }}
             />
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
               Go
             </button>
           </form>
