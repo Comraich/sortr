@@ -131,11 +131,14 @@ button:hover { opacity: 0.9; }
 }
 
 .btn-small {
-  padding: 5px 10px;
+  padding: 8px 12px;
   background-color: var(--primary);
   color: white;
   margin-right: 5px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-danger {
@@ -288,8 +291,8 @@ button:hover { opacity: 0.9; }
   }
 
   .btn-small {
-    min-height: 36px;
-    padding: 6px 12px;
+    min-height: 40px;
+    padding: 10px 14px;
     font-size: 0.85rem;
   }
 
