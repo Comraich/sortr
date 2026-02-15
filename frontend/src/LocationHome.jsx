@@ -63,6 +63,9 @@ function LocationHome() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}>Storage Locations</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <Link to="/scan" className="btn-primary" style={{ textDecoration: 'none', width: 'auto', padding: '8px 16px' }}>
+            📷 Scan QR
+          </Link>
           <Link to="/print" className="btn-small" style={{ textDecoration: 'none', width: 'auto' }}>
             Print QR Codes
           </Link>
