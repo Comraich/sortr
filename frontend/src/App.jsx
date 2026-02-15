@@ -17,6 +17,7 @@ import UserProfile from './UserProfile';
 import PrintQR from './PrintQR';
 import Scanner from './Scanner';
 import ExportImport from './ExportImport';
+import Dashboard from './Dashboard';
 import { isAdmin, getCurrentUser } from './api/client';
 import './App.css';
 
@@ -40,6 +41,9 @@ function Header() {
       </Link>
       {isLoggedIn && !isLoginPage && currentUser && (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Link to="/dashboard" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
+            📊 Dashboard
+          </Link>
           <Link to="/scan" className="btn-primary" style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.9rem' }}>
             📷 Scan
           </Link>
@@ -74,6 +78,7 @@ function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<LocationHome />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/location/:id" element={<LocationDetail />} />
                 <Route path="/items" element={<ItemList />} />
                 <Route path="/login" element={<Login />} />

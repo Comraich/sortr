@@ -88,6 +88,7 @@ const itemRoutes = require('./routes/items');
 const categoryRoutes = require('./routes/categories');
 const activityRoutes = require('./routes/activities');
 const exportRoutes = require('./routes/export');
+const statsRoutes = require('./routes/stats');
 
 // Mount routes
 app.use('/health', healthRoutes);
@@ -101,6 +102,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/stats', statsRoutes);
 
 // --- Error Handling Middleware ---
 // 404 handler - must be after all routes
