@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const where = {};
     if (req.query.locationId) {
-      where.locationId = req.query.locationId;
+      where.locationId = parseInt(req.query.locationId, 10);
     }
     const boxes = await Box.findAll({
       where,

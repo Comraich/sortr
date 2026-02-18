@@ -31,7 +31,7 @@ router.get('/expired', authenticateToken, async (req, res) => {
 // Get expiring soon items (within specified days, default 7)
 router.get('/expiring-soon', authenticateToken, async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 7;
+    const days = parseInt(req.query.days, 10) || 7;
     const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);

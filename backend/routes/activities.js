@@ -11,14 +11,20 @@ const { DEFAULT_QUERY_LIMIT } = require('../config/constants');
  */
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const offset = parseInt(req.query.skip) || 0;
-    const limit = Math.min(parseInt(req.query.limit) || DEFAULT_QUERY_LIMIT, 100);
+    const offset = parseInt(req.query.skip, 10) || 0;
+    const limit = Math.min(parseInt(req.query.limit, 10) || DEFAULT_QUERY_LIMIT, 100);
 
     const where = {};
 
-    // Filter by user
+    // Filter by user (non-admins can only see their own activities)
     if (req.query.userId) {
-      where.userId = parseInt(req.query.userId);
+      const requestedId = parseInt(req.query.userId, 10);
+      if (!req.user.isAdmin && requestedId !== req.user.id) {
+        return res.status(403).json({ error: 'Not authorized to view other users\' activities' });
+      }
+      where.userId = requestedId;
+    } else if (!req.user.isAdmin) {
+      where.userId = req.user.id;
     }
 
     // Filter by entity type
@@ -40,10 +46,10 @@ router.get('/', authenticateToken, async (req, res) => {
     if (req.query.dateFrom || req.query.dateTo) {
       where.createdAt = {};
       if (req.query.dateFrom) {
-        where.createdAt[Op.gte] = new Date(req.query.dateFrom);
+        where.createdAt[Op.gte] = new Date(`${req.query.dateFrom}T00:00:00`);
       }
       if (req.query.dateTo) {
-        const endDate = new Date(req.query.dateTo);
+        const endDate = new Date(`${req.query.dateTo}T00:00:00`);
         endDate.setDate(endDate.getDate() + 1);
         where.createdAt[Op.lt] = endDate;
       }
@@ -76,8 +82,8 @@ router.get('/', authenticateToken, async (req, res) => {
  */
 router.get('/recent', authenticateToken, async (req, res) => {
   try {
-    const hours = parseInt(req.query.hours) || 24;
-    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const hours = parseInt(req.query.hours, 10) || 24;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
 
     const since = new Date();
     since.setHours(since.getHours() - hours);
@@ -113,7 +119,7 @@ router.get('/recent', authenticateToken, async (req, res) => {
 router.get('/entity/:type/:id', authenticateToken, async (req, res) => {
   try {
     const { type, id } = req.params;
-    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
 
     const activities = await Activity.findAll({
       where: {
