@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 require('dotenv').config({ path: '../.env' });
 
 const app = express();
@@ -55,6 +56,9 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Parse cookies (required for httpOnly JWT cookie auth)
+app.use(cookieParser());
 
 // Parse JSON bodies
 app.use(express.json());

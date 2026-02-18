@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiClient } from './api/client';
+import { apiClient, setCurrentUser } from './api/client';
 
 function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -30,7 +30,9 @@ function Login() {
         setIsRegistering(false);
         setError('Registration successful! Please log in.');
       } else {
-        localStorage.setItem('token', data.token);
+        // Token is stored in httpOnly cookie by the server.
+        // Store only non-sensitive user metadata for UI state.
+        setCurrentUser(data.user);
         navigate('/');
       }
     } catch (err) {

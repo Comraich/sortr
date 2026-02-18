@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { apiClient } from './api/client';
+import { apiClient, getApiUrl } from './api/client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = getApiUrl();
 
 function ImageUpload({ itemId, existingImages = [], onImagesUpdate }) {
   const [uploading, setUploading] = useState(false);
@@ -27,12 +27,9 @@ function ImageUpload({ itemId, existingImages = [], onImagesUpdate }) {
         formData.append('images', file);
       });
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/items/${itemId}/images`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
         body: formData
       });
 

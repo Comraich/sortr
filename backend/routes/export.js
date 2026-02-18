@@ -38,11 +38,11 @@ router.post('/csv', authenticateToken, async (req, res) => {
       where.category = filters.category;
     }
     if (filters?.boxId) {
-      where.boxId = parseInt(filters.boxId);
+      where.boxId = parseInt(filters.boxId, 10);
     }
     if (filters?.locationId) {
       // This would need the same logic as items.js for location filtering
-      where.locationId = parseInt(filters.locationId);
+      where.locationId = parseInt(filters.locationId, 10);
     }
 
     // Fetch items
@@ -139,7 +139,7 @@ router.post('/csv-import', authenticateToken, upload.single('file'), async (req,
 
       // Validate boxId if provided
       if (row.boxId && row.boxId.trim() !== '') {
-        const boxId = parseInt(row.boxId);
+        const boxId = parseInt(row.boxId, 10);
         if (isNaN(boxId)) {
           errors.push({ row: rowNum, field: 'boxId', message: 'Box ID must be a number' });
           continue;
@@ -153,7 +153,7 @@ router.post('/csv-import', authenticateToken, upload.single('file'), async (req,
 
       // Validate locationId if provided
       if (row.locationId && row.locationId.trim() !== '') {
-        const locationId = parseInt(row.locationId);
+        const locationId = parseInt(row.locationId, 10);
         if (isNaN(locationId)) {
           errors.push({ row: rowNum, field: 'locationId', message: 'Location ID must be a number' });
           continue;
@@ -169,8 +169,8 @@ router.post('/csv-import', authenticateToken, upload.single('file'), async (req,
         name: row.name.trim(),
         category: row.category?.trim() || null,
         description: row.description?.trim() || null,
-        boxId: row.boxId?.trim() ? parseInt(row.boxId) : null,
-        locationId: row.locationId?.trim() ? parseInt(row.locationId) : null
+        boxId: row.boxId?.trim() ? parseInt(row.boxId, 10) : null,
+        locationId: row.locationId?.trim() ? parseInt(row.locationId, 10) : null
       });
     }
 
@@ -213,6 +213,10 @@ router.post('/csv-import', authenticateToken, upload.single('file'), async (req,
  * Export full database as JSON backup
  */
 router.get('/json', authenticateToken, async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
   try {
     const [items, boxes, locations, categories] = await Promise.all([
       Item.findAll({ include: [{ model: Location }, { model: Box }] }),

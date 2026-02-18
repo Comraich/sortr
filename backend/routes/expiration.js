@@ -31,7 +31,7 @@ router.get('/expired', authenticateToken, async (req, res) => {
 // Get expiring soon items (within specified days, default 7)
 router.get('/expiring-soon', authenticateToken, async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 7;
+    const days = parseInt(req.query.days, 10) || 7;
     const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
@@ -119,7 +119,7 @@ router.post('/check-and-notify', authenticateToken, async (req, res) => {
       // Note: In production, you'd want to notify specific users, not broadcast
       // For now, we'll just notify the current user
       await Notification.create({
-        userId: req.user.userId,
+        userId: req.user.id,
         type: 'mention',
         message,
         resourceType: 'item',

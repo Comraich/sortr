@@ -9,9 +9,9 @@ if (!SECRET_KEY) {
 }
 
 // JWT authentication middleware
+// Accepts token from httpOnly cookie (preferred) or Authorization header (fallback)
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.cookies?.token || (req.headers['authorization']?.split(' ')[1]);
   if (token == null) return res.status(401).json({ error: 'Authentication required' });
 
   jwt.verify(token, SECRET_KEY, (err, user) => {

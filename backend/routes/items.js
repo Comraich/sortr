@@ -40,9 +40,9 @@ const upload = multer({
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Item name is required'),
-    body('category').optional().trim(),
-    body('description').optional().trim(),
+    body('name').trim().notEmpty().isLength({ max: 255 }).withMessage('Item name is required and must be under 255 characters'),
+    body('category').optional().trim().isLength({ max: 100 }).withMessage('Category must be under 100 characters'),
+    body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
@@ -66,8 +66,8 @@ router.post('/',
 
 // Read All Items (with advanced filtering)
 router.get('/', authenticateToken, async (req, res) => {
-  const offset = parseInt(req.query.skip) || 0;
-  const limit = parseInt(req.query.limit) || DEFAULT_QUERY_LIMIT;
+  const offset = parseInt(req.query.skip, 10) || 0;
+  const limit = parseInt(req.query.limit, 10) || DEFAULT_QUERY_LIMIT;
 
   // Build filter conditions
   const where = {};
@@ -86,7 +86,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
   // Filter by box
   if (req.query.boxId) {
-    where.boxId = parseInt(req.query.boxId);
+    where.boxId = parseInt(req.query.boxId, 10);
   }
 
   // Filter by hasBox (items with or without boxes)
@@ -107,11 +107,12 @@ router.get('/', authenticateToken, async (req, res) => {
   if (req.query.dateFrom || req.query.dateTo) {
     where.createdAt = {};
     if (req.query.dateFrom) {
-      where.createdAt[Op.gte] = new Date(req.query.dateFrom);
+      // Append time to parse as local midnight rather than UTC midnight
+      where.createdAt[Op.gte] = new Date(`${req.query.dateFrom}T00:00:00`);
     }
     if (req.query.dateTo) {
       // Add one day to include the entire end date
-      const endDate = new Date(req.query.dateTo);
+      const endDate = new Date(`${req.query.dateTo}T00:00:00`);
       endDate.setDate(endDate.getDate() + 1);
       where.createdAt[Op.lt] = endDate;
     }
@@ -153,22 +154,15 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // If filtering by locationId, we need to check both direct location and box's location
     if (req.query.locationId) {
-      const locationId = parseInt(req.query.locationId);
-
-      // Get all boxes in this location
-      const Box = require('../models').Box;
-      const boxesInLocation = await Box.findAll({
-        where: { locationId },
-        attributes: ['id']
-      });
-      const boxIds = boxesInLocation.map(b => b.id);
+      const locationId = parseInt(req.query.locationId, 10);
+      const { literal } = require('sequelize');
 
       // Items are in this location if:
       // 1. Their locationId matches, OR
-      // 2. Their box is in this location
+      // 2. Their box is in this location (subquery avoids a separate round-trip)
       where[Op.or] = [
         { locationId },
-        { boxId: { [Op.in]: boxIds } }
+        { boxId: { [Op.in]: literal(`(SELECT id FROM Boxes WHERE locationId = ${locationId})`) } }
       ];
     }
 
@@ -210,9 +204,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.put('/:id',
   authenticateToken,
   [
-    body('name').optional().trim().notEmpty().withMessage('Item name cannot be empty'),
-    body('category').optional().trim(),
-    body('description').optional().trim(),
+    body('name').optional().trim().notEmpty().isLength({ max: 255 }).withMessage('Item name cannot be empty and must be under 255 characters'),
+    body('category').optional().trim().isLength({ max: 100 }).withMessage('Category must be under 100 characters'),
+    body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
@@ -366,7 +360,7 @@ router.delete('/:id/images/:filename',
         return res.status(404).json({ error: "Item not found" });
       }
 
-      const { filename } = req.params;
+      const filename = path.basename(req.params.filename);
 
       // Check if image exists in item's images array
       if (!item.images || !item.images.includes(filename)) {

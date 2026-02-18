@@ -22,19 +22,24 @@ import PWAInstallPrompt from './PWAInstallPrompt';
 import { ThemeProvider, useTheme } from './ThemeContext';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import NotificationsDropdown from './NotificationsDropdown';
-import { isAdmin, getCurrentUser } from './api/client';
+import { isAdmin, getCurrentUser, isAuthenticated, clearCurrentUser, apiClient } from './api/client';
 import './App.css';
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isLoggedIn = !!localStorage.getItem('token');
+  const isLoggedIn = isAuthenticated();
   const isLoginPage = location.pathname === '/login';
   const currentUser = getCurrentUser();
   const userIsAdmin = currentUser?.isAdmin;
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/api/logout', {});
+    } catch {
+      // Ignore errors — clear local state regardless
+    }
+    clearCurrentUser();
     navigate('/login');
   };
 
@@ -69,7 +74,7 @@ function Header() {
 function FloatingActionButton() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isLoggedIn = !!localStorage.getItem('token');
+  const isLoggedIn = isAuthenticated();
 
   // Don't show FAB on login page or scanner page
   if (!isLoggedIn || location.pathname === '/login' || location.pathname === '/scan') {

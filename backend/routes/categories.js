@@ -14,14 +14,17 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Create category
+// Create category (admin only)
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Category name is required')
+    body('name').trim().notEmpty().isLength({ max: 100 }).withMessage('Category name is required and must be under 100 characters')
   ],
   validate,
   async (req, res) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
     try {
       const category = await Category.create(req.body);
       res.json(category);
@@ -35,8 +38,11 @@ router.post('/',
   }
 );
 
-// Update category
+// Update category (admin only)
 router.put('/:id', authenticateToken, async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
   try {
     const category = await Category.findByPk(req.params.id);
     if (category) {
@@ -50,8 +56,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete category
+// Delete category (admin only)
 router.delete('/:id', authenticateToken, async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) {

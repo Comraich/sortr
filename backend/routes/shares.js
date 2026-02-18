@@ -8,32 +8,35 @@ const { Share, User, Item, Location, Box, Notification } = require('../models');
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const shares = await Share.findAll({
-      where: { userId: req.user.userId },
+      where: { userId: req.user.id },
       include: [
         { model: User, as: 'sharedBy', attributes: ['id', 'username', 'displayName'] }
       ],
       order: [['createdAt', 'DESC']]
     });
 
-    // Enrich shares with resource details
-    const enrichedShares = await Promise.all(shares.map(async (share) => {
-      let resource = null;
-      try {
-        if (share.resourceType === 'item') {
-          resource = await Item.findByPk(share.resourceId);
-        } else if (share.resourceType === 'location') {
-          resource = await Location.findByPk(share.resourceId);
-        } else if (share.resourceType === 'box') {
-          resource = await Box.findByPk(share.resourceId);
-        }
-      } catch (e) {
-        // Resource might have been deleted
-      }
+    // Collect resource IDs per type, then fetch in bulk (3 queries instead of N)
+    const ids = { item: [], location: [], box: [] };
+    for (const share of shares) {
+      if (ids[share.resourceType]) ids[share.resourceType].push(share.resourceId);
+    }
 
-      return {
-        ...share.toJSON(),
-        resource
-      };
+    const { Op } = require('sequelize');
+    const [items, locations, boxes] = await Promise.all([
+      ids.item.length ? Item.findAll({ where: { id: { [Op.in]: ids.item } } }) : [],
+      ids.location.length ? Location.findAll({ where: { id: { [Op.in]: ids.location } } }) : [],
+      ids.box.length ? Box.findAll({ where: { id: { [Op.in]: ids.box } } }) : []
+    ]);
+
+    const resourceMap = {
+      item: Object.fromEntries(items.map(r => [r.id, r])),
+      location: Object.fromEntries(locations.map(r => [r.id, r])),
+      box: Object.fromEntries(boxes.map(r => [r.id, r]))
+    };
+
+    const enrichedShares = shares.map((share) => ({
+      ...share.toJSON(),
+      resource: resourceMap[share.resourceType]?.[share.resourceId] ?? null
     }));
 
     res.json(enrichedShares);
@@ -83,14 +86,14 @@ router.post('/',
 
       if (existingShare) {
         // Update existing share
-        await existingShare.update({ permission, sharedByUserId: req.user.userId });
+        await existingShare.update({ permission, sharedByUserId: req.user.id });
         return res.json(existingShare);
       }
 
       // Create new share
       const share = await Share.create({
         userId,
-        sharedByUserId: req.user.userId,
+        sharedByUserId: req.user.id,
         resourceType,
         resourceId,
         permission
@@ -121,7 +124,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     // Only the person who created the share or admin can delete it
-    if (share.sharedByUserId !== req.user.userId && !req.user.isAdmin) {
+    if (share.sharedByUserId !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({ error: 'Not authorized to delete this share' });
     }
 
@@ -144,7 +147,7 @@ router.get('/resource/:type/:id', authenticateToken, async (req, res) => {
     const shares = await Share.findAll({
       where: {
         resourceType: type,
-        resourceId: parseInt(id)
+        resourceId: parseInt(id, 10)
       },
       include: [
         { model: User, as: 'user', attributes: ['id', 'username', 'displayName'] },

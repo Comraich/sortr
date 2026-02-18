@@ -8,7 +8,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { unreadOnly } = req.query;
 
-    const where = { userId: req.user.userId };
+    const where = { userId: req.user.id };
     if (unreadOnly === 'true') {
       where.isRead = false;
     }
@@ -30,7 +30,7 @@ router.get('/unread/count', authenticateToken, async (req, res) => {
   try {
     const count = await Notification.count({
       where: {
-        userId: req.user.userId,
+        userId: req.user.id,
         isRead: false
       }
     });
@@ -49,7 +49,7 @@ router.put('/:id/read', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Notification not found' });
     }
 
-    if (notification.userId !== req.user.userId) {
+    if (notification.userId !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
@@ -65,7 +65,7 @@ router.put('/read-all', authenticateToken, async (req, res) => {
   try {
     await Notification.update(
       { isRead: true },
-      { where: { userId: req.user.userId, isRead: false } }
+      { where: { userId: req.user.id, isRead: false } }
     );
 
     res.json({ message: 'All notifications marked as read' });
@@ -82,7 +82,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Notification not found' });
     }
 
-    if (notification.userId !== req.user.userId) {
+    if (notification.userId !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 

@@ -24,7 +24,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Location name is required'),
+    body('name').trim().notEmpty().isLength({ max: 255 }).withMessage('Location name is required and must be under 255 characters'),
     body('parentId').optional().isInt().withMessage('Parent ID must be an integer')
   ],
   validate,
@@ -81,7 +81,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
           return res.status(400).json({ error: 'Parent location not found' });
         }
 
-        const circular = await wouldCreateCircularReference(parseInt(req.params.id), req.body.parentId);
+        const circular = await wouldCreateCircularReference(parseInt(req.params.id, 10), req.body.parentId);
         if (circular) {
           return res.status(400).json({ error: 'Cannot create circular reference in location hierarchy' });
         }
