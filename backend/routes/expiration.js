@@ -119,7 +119,7 @@ router.post('/check-and-notify', authenticateToken, async (req, res) => {
       // Note: In production, you'd want to notify specific users, not broadcast
       // For now, we'll just notify the current user
       await Notification.create({
-        userId: req.user.userId,
+        userId: req.user.id,
         type: 'mention',
         message,
         resourceType: 'item',

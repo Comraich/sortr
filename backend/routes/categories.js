@@ -18,7 +18,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Category name is required')
+    body('name').trim().notEmpty().isLength({ max: 100 }).withMessage('Category name is required and must be under 100 characters')
   ],
   validate,
   async (req, res) => {

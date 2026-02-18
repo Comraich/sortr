@@ -40,9 +40,9 @@ const upload = multer({
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Item name is required'),
-    body('category').optional().trim(),
-    body('description').optional().trim(),
+    body('name').trim().notEmpty().isLength({ max: 255 }).withMessage('Item name is required and must be under 255 characters'),
+    body('category').optional().trim().isLength({ max: 100 }).withMessage('Category must be under 100 characters'),
+    body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
@@ -210,9 +210,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.put('/:id',
   authenticateToken,
   [
-    body('name').optional().trim().notEmpty().withMessage('Item name cannot be empty'),
-    body('category').optional().trim(),
-    body('description').optional().trim(),
+    body('name').optional().trim().notEmpty().isLength({ max: 255 }).withMessage('Item name cannot be empty and must be under 255 characters'),
+    body('category').optional().trim().isLength({ max: 100 }).withMessage('Category must be under 100 characters'),
+    body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
     body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided'),
     body('boxId').optional().isInt({ min: 1 }).withMessage('Valid box ID is required if provided')
   ],
@@ -366,7 +366,7 @@ router.delete('/:id/images/:filename',
         return res.status(404).json({ error: "Item not found" });
       }
 
-      const { filename } = req.params;
+      const filename = path.basename(req.params.filename);
 
       // Check if image exists in item's images array
       if (!item.images || !item.images.includes(filename)) {

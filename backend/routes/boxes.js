@@ -26,7 +26,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/',
   authenticateToken,
   [
-    body('name').trim().notEmpty().withMessage('Box name is required'),
+    body('name').trim().notEmpty().isLength({ max: 255 }).withMessage('Box name is required and must be under 255 characters'),
     body('locationId').isInt({ min: 1 }).withMessage('Valid location ID is required')
   ],
   validate,

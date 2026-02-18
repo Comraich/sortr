@@ -26,7 +26,7 @@ router.post('/',
   authenticateToken,
   [
     body('itemId').isInt().withMessage('Item ID is required'),
-    body('content').trim().notEmpty().withMessage('Comment content is required')
+    body('content').trim().notEmpty().isLength({ max: 2000 }).withMessage('Comment content is required and must be under 2000 characters')
   ],
   validate,
   async (req, res) => {
@@ -41,7 +41,7 @@ router.post('/',
 
       // Create comment
       const comment = await Comment.create({
-        userId: req.user.userId,
+        userId: req.user.id,
         itemId,
         content
       });
@@ -62,7 +62,7 @@ router.post('/',
       });
 
       for (const share of shares) {
-        if (share.userId !== req.user.userId) {
+        if (share.userId !== req.user.id) {
           await Notification.create({
             userId: share.userId,
             type: 'comment',
@@ -84,7 +84,7 @@ router.post('/',
 router.put('/:id',
   authenticateToken,
   [
-    body('content').trim().notEmpty().withMessage('Comment content is required')
+    body('content').trim().notEmpty().isLength({ max: 2000 }).withMessage('Comment content is required and must be under 2000 characters')
   ],
   validate,
   async (req, res) => {
@@ -95,7 +95,7 @@ router.put('/:id',
       }
 
       // Only the comment author can update it
-      if (comment.userId !== req.user.userId) {
+      if (comment.userId !== req.user.id) {
         return res.status(403).json({ error: 'Not authorized to update this comment' });
       }
 
@@ -123,7 +123,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     // Only the comment author or admin can delete it
-    if (comment.userId !== req.user.userId && !req.user.isAdmin) {
+    if (comment.userId !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({ error: 'Not authorized to delete this comment' });
     }
 
