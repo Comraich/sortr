@@ -184,7 +184,7 @@ router.get('/', authenticateToken, async (req, res) => {
  */
 router.get('/trends', authenticateToken, async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 30;
+    const days = parseInt(req.query.days, 10) || 30;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 

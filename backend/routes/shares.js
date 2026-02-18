@@ -147,7 +147,7 @@ router.get('/resource/:type/:id', authenticateToken, async (req, res) => {
     const shares = await Share.findAll({
       where: {
         resourceType: type,
-        resourceId: parseInt(id)
+        resourceId: parseInt(id, 10)
       },
       include: [
         { model: User, as: 'user', attributes: ['id', 'username', 'displayName'] },

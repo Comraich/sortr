@@ -161,7 +161,7 @@ router.get('/duplicates', authenticateToken, async (req, res) => {
     };
 
     if (excludeId) {
-      whereClause.id = { [Op.not]: parseInt(excludeId) };
+      whereClause.id = { [Op.not]: parseInt(excludeId, 10) };
     }
 
     const candidates = await Item.findAll({
@@ -215,7 +215,7 @@ router.get('/empty-boxes', authenticateToken, async (req, res) => {
 
     const whereClause = {};
     if (locationId) {
-      whereClause.locationId = parseInt(locationId);
+      whereClause.locationId = parseInt(locationId, 10);
     }
 
     // Find boxes with no items
@@ -273,7 +273,7 @@ router.get('/autocomplete', authenticateToken, async (req, res) => {
       },
       attributes: ['name', 'category'],
       group: ['name', 'category'],
-      limit: parseInt(limit),
+      limit: parseInt(limit, 10),
       order: [['name', 'ASC']]
     });
 
@@ -311,7 +311,7 @@ router.get('/box-for-item', authenticateToken, async (req, res) => {
     if (locationId) {
       // Find boxes in the same location
       const boxesInLocation = await Box.findAll({
-        where: { locationId: parseInt(locationId) },
+        where: { locationId: parseInt(locationId, 10) },
         attributes: ['id']
       });
       const boxIds = boxesInLocation.map(b => b.id);

@@ -66,8 +66,8 @@ router.post('/',
 
 // Read All Items (with advanced filtering)
 router.get('/', authenticateToken, async (req, res) => {
-  const offset = parseInt(req.query.skip) || 0;
-  const limit = parseInt(req.query.limit) || DEFAULT_QUERY_LIMIT;
+  const offset = parseInt(req.query.skip, 10) || 0;
+  const limit = parseInt(req.query.limit, 10) || DEFAULT_QUERY_LIMIT;
 
   // Build filter conditions
   const where = {};
@@ -86,7 +86,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
   // Filter by box
   if (req.query.boxId) {
-    where.boxId = parseInt(req.query.boxId);
+    where.boxId = parseInt(req.query.boxId, 10);
   }
 
   // Filter by hasBox (items with or without boxes)
@@ -154,7 +154,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // If filtering by locationId, we need to check both direct location and box's location
     if (req.query.locationId) {
-      const locationId = parseInt(req.query.locationId);
+      const locationId = parseInt(req.query.locationId, 10);
       const { literal } = require('sequelize');
 
       // Items are in this location if:

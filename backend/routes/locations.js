@@ -81,7 +81,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
           return res.status(400).json({ error: 'Parent location not found' });
         }
 
-        const circular = await wouldCreateCircularReference(parseInt(req.params.id), req.body.parentId);
+        const circular = await wouldCreateCircularReference(parseInt(req.params.id, 10), req.body.parentId);
         if (circular) {
           return res.status(400).json({ error: 'Cannot create circular reference in location hierarchy' });
         }

@@ -34,7 +34,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // Filter by entity ID
     if (req.query.entityId) {
-      where.entityId = parseInt(req.query.entityId);
+      where.entityId = parseInt(req.query.entityId, 10);
     }
 
     // Filter by action
@@ -124,7 +124,7 @@ router.get('/entity/:type/:id', authenticateToken, async (req, res) => {
     const activities = await Activity.findAll({
       where: {
         entityType: type,
-        entityId: parseInt(id)
+        entityId: parseInt(id, 10)
       },
       limit,
       include: [
