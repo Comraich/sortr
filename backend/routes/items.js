@@ -107,11 +107,12 @@ router.get('/', authenticateToken, async (req, res) => {
   if (req.query.dateFrom || req.query.dateTo) {
     where.createdAt = {};
     if (req.query.dateFrom) {
-      where.createdAt[Op.gte] = new Date(req.query.dateFrom);
+      // Append time to parse as local midnight rather than UTC midnight
+      where.createdAt[Op.gte] = new Date(`${req.query.dateFrom}T00:00:00`);
     }
     if (req.query.dateTo) {
       // Add one day to include the entire end date
-      const endDate = new Date(req.query.dateTo);
+      const endDate = new Date(`${req.query.dateTo}T00:00:00`);
       endDate.setDate(endDate.getDate() + 1);
       where.createdAt[Op.lt] = endDate;
     }
@@ -154,21 +155,14 @@ router.get('/', authenticateToken, async (req, res) => {
     // If filtering by locationId, we need to check both direct location and box's location
     if (req.query.locationId) {
       const locationId = parseInt(req.query.locationId);
-
-      // Get all boxes in this location
-      const Box = require('../models').Box;
-      const boxesInLocation = await Box.findAll({
-        where: { locationId },
-        attributes: ['id']
-      });
-      const boxIds = boxesInLocation.map(b => b.id);
+      const { literal } = require('sequelize');
 
       // Items are in this location if:
       // 1. Their locationId matches, OR
-      // 2. Their box is in this location
+      // 2. Their box is in this location (subquery avoids a separate round-trip)
       where[Op.or] = [
         { locationId },
-        { boxId: { [Op.in]: boxIds } }
+        { boxId: { [Op.in]: literal(`(SELECT id FROM Boxes WHERE locationId = ${locationId})`) } }
       ];
     }
 

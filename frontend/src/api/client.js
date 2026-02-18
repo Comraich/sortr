@@ -3,7 +3,12 @@
  * Handles authentication, token expiration, and error responses
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || (() => {
+  if (import.meta.env.PROD) {
+    console.error('VITE_API_URL is not set in production. API calls will fail.');
+  }
+  return 'http://localhost:8000';
+})();
 
 /**
  * Get authentication headers with Bearer token
