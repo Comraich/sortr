@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiClient } from './api/client';
+import { getApiUrl } from './api/client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = getApiUrl();
 
 function ExportImport() {
   const [importing, setImporting] = useState(false);
@@ -16,14 +16,11 @@ function ExportImport() {
   const handleExportCSV = async () => {
     try {
       setExporting(true);
-      const token = localStorage.getItem('token');
 
       const response = await fetch(`${API_URL}/api/export/csv`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters: {} })
       });
 
@@ -53,13 +50,10 @@ function ExportImport() {
   const handleExportJSON = async () => {
     try {
       setExporting(true);
-      const token = localStorage.getItem('token');
 
       const response = await fetch(`${API_URL}/api/export/json`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -87,13 +81,9 @@ function ExportImport() {
   // Download import template
   const handleDownloadTemplate = async () => {
     try {
-      const token = localStorage.getItem('token');
-
       const response = await fetch(`${API_URL}/api/export/template`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -138,12 +128,9 @@ function ExportImport() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/export/csv-import?preview=true`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
         body: formData
       });
 
@@ -178,12 +165,9 @@ function ExportImport() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/export/csv-import`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
         body: formData
       });
 
