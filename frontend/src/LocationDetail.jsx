@@ -135,6 +135,13 @@ function LocationDetail() {
           </div>
           <h2 style={{ margin: 0 }}>{location.name}</h2>
         </div>
+        <Link
+          to={`/add?locationId=${id}`}
+          className="btn-primary"
+          style={{ textDecoration: 'none', width: 'auto', padding: '8px 16px' }}
+        >
+          + Add Item
+        </Link>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
