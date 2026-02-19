@@ -8,6 +8,7 @@ function ItemForm() {
   const [searchParams] = useSearchParams();
   const isEditing = !!id;
   const preselectedBoxId = searchParams.get('boxId');
+  const preselectedLocationId = searchParams.get('locationId');
   const [error, setError] = useState(null);
   const [locations, setLocations] = useState([]);
   const [boxes, setBoxes] = useState([]);
@@ -65,6 +66,14 @@ function ItemForm() {
       }
     }
   }, [preselectedBoxId, boxes, isEditing]);
+
+  // Handle preselected location from URL parameter
+  useEffect(() => {
+    if (preselectedLocationId && !isEditing && !preselectedBoxId) {
+      setFormData(prev => ({ ...prev, locationId: preselectedLocationId }));
+      setSelectedLocationId(preselectedLocationId);
+    }
+  }, [preselectedLocationId, isEditing, preselectedBoxId]);
 
   // Fetch suggestions when item name changes
   useEffect(() => {
