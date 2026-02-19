@@ -117,7 +117,8 @@ router.get('/', authenticateToken, async (req, res) => {
     ]);
 
     // Calculate storage utilization
-    const averageItemsPerBox = totalBoxes > 0 ? (totalItems / totalBoxes).toFixed(2) : 0;
+    const itemsWithBox = totalItems - itemsWithoutBox;
+    const averageItemsPerBox = totalBoxes > 0 ? (itemsWithBox / totalBoxes).toFixed(2) : 0;
     const boxUtilization = totalBoxes > 0 ? ((totalBoxes - emptyBoxes.length) / totalBoxes * 100).toFixed(1) : 0;
 
     // Format the response
