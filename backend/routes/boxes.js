@@ -44,7 +44,10 @@ router.post('/',
 );
 
 // Update box
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, [
+  body('name').optional().trim().notEmpty().isLength({ max: 255 }).withMessage('Box name must be under 255 characters'),
+  body('locationId').optional().isInt({ min: 1 }).withMessage('Valid location ID is required if provided')
+], validate, async (req, res) => {
   try {
     const box = await Box.findByPk(req.params.id);
     if (box) {

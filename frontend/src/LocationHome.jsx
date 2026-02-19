@@ -45,7 +45,9 @@ function LocationHome() {
     const locationBoxIds = boxes
       .filter(box => box.locationId === locationId)
       .map(box => box.id);
-    return items.filter(item => locationBoxIds.includes(item.boxId)).length;
+    return items.filter(item =>
+      item.locationId === locationId || locationBoxIds.includes(item.boxId)
+    ).length;
   };
 
   const totalBoxes = boxes.length;

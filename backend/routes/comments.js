@@ -7,6 +7,12 @@ const { Comment, User, Item, Share, Notification } = require('../models');
 // Get comments for an item
 router.get('/item/:itemId', authenticateToken, async (req, res) => {
   try {
+    // Verify the item exists before returning comments
+    const item = await Item.findByPk(req.params.itemId);
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
     const comments = await Comment.findAll({
       where: { itemId: req.params.itemId },
       include: [
