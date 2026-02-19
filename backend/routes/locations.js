@@ -66,7 +66,10 @@ async function wouldCreateCircularReference(locationId, newParentId) {
 }
 
 // Update location
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, [
+  body('name').optional().trim().notEmpty().isLength({ max: 255 }).withMessage('Location name must be under 255 characters'),
+  body('parentId').optional({ nullable: true }).isInt().withMessage('Parent ID must be an integer')
+], validate, async (req, res) => {
   try {
     const location = await Location.findByPk(req.params.id);
     if (!location) {

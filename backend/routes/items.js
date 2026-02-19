@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { body } = require('express-validator');
 const { authenticateToken, validate } = require('../middleware');
-const { Item, Box, Location } = require('../models');
+const { sequelize, Item, Box, Location } = require('../models');
 const { DEFAULT_QUERY_LIMIT } = require('../config/constants');
 const { logActivity, logCustomActivity } = require('../middleware/activityLogger');
 
@@ -155,14 +155,13 @@ router.get('/', authenticateToken, async (req, res) => {
     // If filtering by locationId, we need to check both direct location and box's location
     if (req.query.locationId) {
       const locationId = parseInt(req.query.locationId, 10);
-      const { literal } = require('sequelize');
 
       // Items are in this location if:
       // 1. Their locationId matches, OR
-      // 2. Their box is in this location (subquery avoids a separate round-trip)
+      // 2. Their box is in this location
       where[Op.or] = [
         { locationId },
-        { boxId: { [Op.in]: literal(`(SELECT id FROM Boxes WHERE locationId = ${locationId})`) } }
+        { boxId: { [Op.in]: sequelize.literal(`(SELECT id FROM Boxes WHERE locationId = ${sequelize.escape(locationId)})`) } }
       ];
     }
 
@@ -306,9 +305,8 @@ router.post('/:id/images',
 
       // Limit to 5 images total
       if (updatedImages.length > 5) {
-        // Clean up excess files
-        const excessFiles = newImages.slice(5 - currentImages.length);
-        for (const filename of excessFiles) {
+        // Clean up all uploaded files since we're rejecting the request
+        for (const filename of newImages) {
           await fs.unlink(path.join('uploads', filename)).catch(err => console.error(err));
         }
         return res.status(400).json({ error: 'Maximum 5 images allowed per item' });
