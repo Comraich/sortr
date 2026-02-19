@@ -131,7 +131,7 @@ function PrintQR() {
                       onChange={() => toggleItem(item.id)}
                     />
                     <span className="item-name">{item.name}</span>
-                    <span className="item-location">{item.Box?.Location?.name || '-'} / {item.Box?.name || '-'}</span>
+                    <span className="item-location">{item.Box?.Location?.name || item.Location?.name || '-'} {item.Box ? `/ ${item.Box.name}` : ''}</span>
                   </label>
                 ))}
               </div>
@@ -195,7 +195,9 @@ function PrintQR() {
                 <div className="qr-label">
                   <strong>{item.name}</strong>
                   <span className="qr-sublabel">
-                    {item.Box?.name ? `${item.Box.Location?.name} / ${item.Box.name}` : 'No box assigned'}
+                    {item.Box?.name
+                      ? `${item.Box.Location?.name} / ${item.Box.name}`
+                      : item.Location?.name || 'No location assigned'}
                   </span>
                 </div>
               </div>
