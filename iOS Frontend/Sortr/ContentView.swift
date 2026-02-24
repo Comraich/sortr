@@ -7,7 +7,7 @@ struct ContentView: View {
         if authSession.isAuthenticated {
             Text("Logged in as \(authSession.currentUser?.displayNameOrUsername ?? "")")
         } else {
-            Text("Not logged in")
+            LoginView()
         }
     }
 }
