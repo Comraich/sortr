@@ -37,7 +37,7 @@ final class APIClient {
     // MARK: - Generic JSON request
 
     func request<T: Decodable>(_ endpoint: APIEndpoint, body: (any Encodable)? = nil) async throws -> T {
-        guard networkMonitor.isConnected else { throw APIError.networkUnavailable }
+        guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let urlRequest = try buildRequest(for: endpoint, body: body)
         let (data, response) = try await performRequest(urlRequest)
@@ -46,7 +46,7 @@ final class APIClient {
 
     /// Returns raw Data (for CSV/JSON export downloads)
     func requestData(_ endpoint: APIEndpoint, body: (any Encodable)? = nil) async throws -> Data {
-        guard networkMonitor.isConnected else { throw APIError.networkUnavailable }
+        guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let urlRequest = try buildRequest(for: endpoint, body: body)
         let (data, response) = try await performRequest(urlRequest)
@@ -63,7 +63,7 @@ final class APIClient {
 
     /// Multipart image upload — field name is `images`
     func uploadImages(itemId: Int, imagesData: [(data: Data, mimeType: String)]) async throws -> [String] {
-        guard networkMonitor.isConnected else { throw APIError.networkUnavailable }
+        guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let boundary = "Boundary-\(UUID().uuidString)"
         let url = baseURL.appending(path: "/api/items/\(itemId)/images")
@@ -94,7 +94,7 @@ final class APIClient {
 
     /// Multipart CSV import
     func uploadCSV(csvData: Data, preview: Bool) async throws -> ImportPreviewResponse {
-        guard networkMonitor.isConnected else { throw APIError.networkUnavailable }
+        guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let boundary = "Boundary-\(UUID().uuidString)"
         guard var components = URLComponents(url: baseURL.appending(path: "/api/export/csv-import"), resolvingAgainstBaseURL: false) else {

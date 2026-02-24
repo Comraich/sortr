@@ -19,8 +19,12 @@ enum APIError: LocalizedError {
             return "Resource not found."
         case .serverError(let msg):
             return msg
-        case .decodingError:
+        case .decodingError(let error):
+            #if DEBUG
+            return "Unexpected server response: \(error.localizedDescription)"
+            #else
             return "Unexpected server response."
+            #endif
         case .networkUnavailable:
             return "No internet connection."
         case .unknown(let e):

@@ -206,6 +206,8 @@ enum APIEndpoint {
         switch self {
         case .items(let skip, let limit, let search, let category, let locationId,
                     let boxId, let isFavorite, let sortBy, let sortOrder, let dateFrom, let dateTo):
+            assert(skip >= 0, "items(skip:) must be >= 0, got \(skip)")
+            assert(limit > 0, "items(limit:) must be > 0, got \(limit)")
             var items = [URLQueryItem]()
             if skip > 0 { items.append(.init(name: "skip", value: "\(skip)")) }
             items.append(.init(name: "limit", value: "\(limit)"))
@@ -228,6 +230,8 @@ enum APIEndpoint {
             return unreadOnly ? [.init(name: "unreadOnly", value: "true")] : []
 
         case .activities(let skip, let limit, let userId, let entityType, let action, let dateFrom, let dateTo):
+            assert(skip >= 0, "activities(skip:) must be >= 0, got \(skip)")
+            assert(limit > 0, "activities(limit:) must be > 0, got \(limit)")
             var items = [URLQueryItem]()
             if skip > 0 { items.append(.init(name: "skip", value: "\(skip)")) }
             items.append(.init(name: "limit", value: "\(limit)"))
@@ -245,9 +249,11 @@ enum APIEndpoint {
             return [.init(name: "days", value: "\(days)")]
 
         case .suggestCategory(let name):
+            assert(!name.isEmpty, "suggestCategory(name:) must not be empty")
             return [.init(name: "name", value: name)]
 
         case .suggestDuplicates(let name, let excludeId):
+            assert(!name.isEmpty, "suggestDuplicates(name:) must not be empty")
             var items: [URLQueryItem] = [.init(name: "name", value: name)]
             if let excludeId { items.append(.init(name: "excludeId", value: "\(excludeId)")) }
             return items
@@ -257,6 +263,7 @@ enum APIEndpoint {
             return []
 
         case .autocomplete(let query, let limit):
+            assert(!query.isEmpty, "autocomplete(query:) must not be empty")
             return [.init(name: "query", value: query), .init(name: "limit", value: "\(limit)")]
 
         case .suggestBoxForItem(let category, let locationId):

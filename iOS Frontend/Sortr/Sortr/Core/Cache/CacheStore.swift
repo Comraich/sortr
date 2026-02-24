@@ -30,6 +30,12 @@ final class CacheStore {
         lock.lock()
         defer { lock.unlock() }
         cache[key] = Entry(value: value, expiry: Date().addingTimeInterval(ttl))
+        purgeExpiredLocked()
+    }
+
+    // Must be called with `lock` already held.
+    private func purgeExpiredLocked() {
+        cache = cache.filter { $0.value.expiry > .now }
     }
 
     /// Invalidate all cache entries whose key starts with `prefix`.

@@ -3,7 +3,8 @@ import Observation
 
 @Observable
 final class NetworkMonitor {
-    private(set) var isConnected: Bool = true
+    /// `nil` until the first path update fires; `true`/`false` thereafter.
+    private(set) var isConnected: Bool?
 
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "net.comraich.sortr.NetworkMonitor")
