@@ -15,10 +15,7 @@ struct DashboardView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if let stats = viewModel.stats {
+        if let stats = viewModel.stats {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     overviewGrid(stats.overview)
@@ -47,6 +44,9 @@ struct DashboardView: View {
             } actions: {
                 Button("Try Again") { Task { await viewModel.load() } }
             }
+        } else {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
