@@ -5,7 +5,7 @@ struct ContentView: View {
 
     var body: some View {
         if authSession.isAuthenticated {
-            Text("Logged in as \(authSession.currentUser?.displayNameOrUsername ?? "")")
+            MainTabView()
         } else {
             LoginView()
         }
