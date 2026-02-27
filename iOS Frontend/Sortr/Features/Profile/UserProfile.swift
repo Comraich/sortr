@@ -1,6 +1,6 @@
 import Foundation
 
-struct UserProfile: Decodable {
+struct UserProfile: Decodable, Identifiable {
     let id: Int
     let username: String
     let email: String?
