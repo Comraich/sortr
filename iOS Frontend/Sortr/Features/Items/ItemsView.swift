@@ -82,11 +82,6 @@ struct ItemsView: View {
 
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Add Item", systemImage: "plus") {
-                // TODO: present AddItemView
-            }
-        }
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 viewModel.showFavoritesOnly.toggle()

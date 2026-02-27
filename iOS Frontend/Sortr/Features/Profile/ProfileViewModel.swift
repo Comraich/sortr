@@ -19,11 +19,17 @@ final class ProfileViewModel {
     var newPassword = ""
     var confirmPassword = ""
 
+    private let apiClient: APIClient
+
+    init(apiClient: APIClient = .shared) {
+        self.apiClient = apiClient
+    }
+
     func load() async {
         if profile == nil { isLoading = true }
         errorMessage = nil
         do {
-            let p: UserProfile = try await APIClient.shared.request(.profile)
+            let p: UserProfile = try await apiClient.request(.profile)
             profile = p
             username    = p.username
             displayName = p.displayName ?? ""
@@ -62,7 +68,7 @@ final class ProfileViewModel {
                 currentPassword: currentPassword.isEmpty ? nil : currentPassword,
                 newPassword:     newPassword.isEmpty     ? nil : newPassword
             )
-            let updated: UserProfile = try await APIClient.shared.request(.updateProfile, body: body)
+            let updated: UserProfile = try await apiClient.request(.updateProfile, body: body)
             profile = updated
             // Sync display name / username back into the session
             authSession.updateCurrentUser(AuthUser(

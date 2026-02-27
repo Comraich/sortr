@@ -10,12 +10,18 @@ final class ItemsViewModel {
     var searchText = ""
     var showFavoritesOnly = false
 
+    private let apiClient: APIClient
+
+    init(apiClient: APIClient = .shared) {
+        self.apiClient = apiClient
+    }
+
     func load() async {
         // Only show the full-screen spinner on the first load
         if items.isEmpty { isLoading = true }
         errorMessage = nil
         do {
-            items = try await APIClient.shared.request(
+            items = try await apiClient.request(
                 .items(
                     search: searchText.isEmpty ? nil : searchText,
                     isFavorite: showFavoritesOnly ? true : nil
@@ -32,7 +38,7 @@ final class ItemsViewModel {
         // Optimistic removal
         items.removeAll { $0.id == item.id }
         do {
-            let _: EmptyResponse = try await APIClient.shared.request(.deleteItem(id: item.id))
+            let _: EmptyResponse = try await apiClient.request(.deleteItem(id: item.id))
         } catch {
             // Restore item on failure
             items.append(item)
