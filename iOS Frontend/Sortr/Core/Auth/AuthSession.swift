@@ -28,6 +28,7 @@ final class AuthSession {
 
     private let keychainManager: KeychainManager
     private let apiClient: APIClient
+    nonisolated(unsafe) private var sessionExpiredObserver: (any NSObjectProtocol)?
 
     init(keychainManager: KeychainManager, apiClient: APIClient) {
         self.keychainManager = keychainManager
@@ -36,17 +37,22 @@ final class AuthSession {
         // Restore session from Keychain on launch
         self.currentUser = keychainManager.getUser()
 
-        // Listen for 401 responses from APIClient
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleSessionExpired),
-            name: .sessionExpired,
-            object: nil
-        )
+        // Listen for 401 responses from APIClient.
+        // Block-based API: deinit cancels via the opaque token, avoiding any
+        // reference to the actor-isolated .sessionExpired Notification.Name.
+        sessionExpiredObserver = NotificationCenter.default.addObserver(
+            forName: .sessionExpired,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleSessionExpired()
+        }
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self, name: .sessionExpired, object: nil)
+        if let observer = sessionExpiredObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     func login(username: String, password: String) async throws {
@@ -71,7 +77,7 @@ final class AuthSession {
         try? keychainManager.saveUser(user)
     }
 
-    @objc private func handleSessionExpired() {
+    private func handleSessionExpired() {
         keychainManager.deleteAll()
         currentUser = nil
     }
