@@ -28,7 +28,7 @@ final class AuthSession {
 
     private let keychainManager: KeychainManager
     private let apiClient: APIClient
-    nonisolated(unsafe) private var sessionExpiredObserver: (any NSObjectProtocol)?
+    nonisolated private var sessionExpiredObserver: (any NSObjectProtocol)?
 
     init(keychainManager: KeychainManager, apiClient: APIClient) {
         self.keychainManager = keychainManager
