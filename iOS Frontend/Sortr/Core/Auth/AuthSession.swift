@@ -28,7 +28,9 @@ final class AuthSession {
 
     private let keychainManager: KeychainManager
     private let apiClient: APIClient
-    nonisolated private var sessionExpiredObserver: (any NSObjectProtocol)?
+    /// Owns the NotificationCenter token. Its own deinit (nonisolated, no
+    /// actor constraints) cancels the observer when AuthSession is released.
+    private let observerBag = ObserverBag()
 
     init(keychainManager: KeychainManager, apiClient: APIClient) {
         self.keychainManager = keychainManager
@@ -37,21 +39,13 @@ final class AuthSession {
         // Restore session from Keychain on launch
         self.currentUser = keychainManager.getUser()
 
-        // Listen for 401 responses from APIClient.
-        // Block-based API: deinit cancels via the opaque token, avoiding any
-        // reference to the actor-isolated .sessionExpired Notification.Name.
-        sessionExpiredObserver = NotificationCenter.default.addObserver(
+        // Listen for 401 responses from APIClient
+        observerBag.token = NotificationCenter.default.addObserver(
             forName: .sessionExpired,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.handleSessionExpired()
-        }
-    }
-
-    deinit {
-        if let observer = sessionExpiredObserver {
-            NotificationCenter.default.removeObserver(observer)
         }
     }
 
@@ -80,6 +74,18 @@ final class AuthSession {
     private func handleSessionExpired() {
         keychainManager.deleteAll()
         currentUser = nil
+    }
+}
+
+// MARK: - Observer token container
+
+/// A plain (non-actor-isolated) class whose deinit removes a NotificationCenter
+/// observer. Used to work around the Swift restriction that @MainActor class
+/// deinits are nonisolated and cannot access actor-isolated stored properties.
+private final class ObserverBag {
+    var token: (any NSObjectProtocol)?
+    deinit {
+        if let token { NotificationCenter.default.removeObserver(token) }
     }
 }
 
