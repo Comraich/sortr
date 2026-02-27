@@ -37,6 +37,8 @@ final class APIClient {
     // MARK: - Generic JSON request
 
     func request<T: Decodable>(_ endpoint: APIEndpoint, body: (any Encodable)? = nil) async throws -> T {
+        // isConnected is nil until the first NWPathMonitor update fires; treat nil as
+        // "not yet known" and allow the request through rather than blocking on startup.
         guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let urlRequest = try buildRequest(for: endpoint, body: body)
@@ -66,20 +68,13 @@ final class APIClient {
         guard networkMonitor.isConnected != false else { throw APIError.networkUnavailable }
 
         let boundary = "Boundary-\(UUID().uuidString)"
-        let url = baseURL.appending(path: "/api/items/\(itemId)/images")
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        if let token = keychainManager.getToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        var request = makeMultipartRequest(url: baseURL.appending(path: "/api/items/\(itemId)/images"), boundary: boundary)
 
         var body = Data()
         for (index, imageData) in imagesData.enumerated() {
+            let ext = imageData.mimeType == "image/png" ? "png" : "jpg"
             body.append("--\(boundary)\r\n".utf8Data)
-            body.append("Content-Disposition: form-data; name=\"images\"; filename=\"image\(index).jpg\"\r\n".utf8Data)
+            body.append("Content-Disposition: form-data; name=\"images\"; filename=\"image\(index).\(ext)\"\r\n".utf8Data)
             body.append("Content-Type: \(imageData.mimeType)\r\n\r\n".utf8Data)
             body.append(imageData.data)
             body.append("\r\n".utf8Data)
@@ -105,12 +100,7 @@ final class APIClient {
             throw APIError.serverError("Failed to build CSV import URL")
         }
 
-        var request = URLRequest(url: csvImportURL)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        if let token = keychainManager.getToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        var request = makeMultipartRequest(url: csvImportURL, boundary: boundary)
 
         var body = Data()
         body.append("--\(boundary)\r\n".utf8Data)
@@ -125,6 +115,17 @@ final class APIClient {
     }
 
     // MARK: - Private helpers
+
+    /// Builds a URLRequest with the correct Content-Type and Authorization headers for multipart uploads.
+    private func makeMultipartRequest(url: URL, boundary: String) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let token = keychainManager.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
 
     private func buildRequest(for endpoint: APIEndpoint, body: (any Encodable)? = nil) throws -> URLRequest {
         guard var components = URLComponents(url: baseURL.appending(path: endpoint.path), resolvingAgainstBaseURL: false) else {

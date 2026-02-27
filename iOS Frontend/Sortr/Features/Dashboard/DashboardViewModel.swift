@@ -9,13 +9,19 @@ final class DashboardViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    private let apiClient: APIClient
+
+    init(apiClient: APIClient = .shared) {
+        self.apiClient = apiClient
+    }
+
     func load() async {
         if stats == nil { isLoading = true }
         errorMessage = nil
         do {
             // Fetch stats and trends in parallel
-            async let statsTask: DashboardStats = APIClient.shared.request(.stats)
-            async let trendsTask: TrendsResponse = APIClient.shared.request(.statsTrends())
+            async let statsTask: DashboardStats = apiClient.request(.stats)
+            async let trendsTask: TrendsResponse = apiClient.request(.statsTrends())
             // Await both — tasks run concurrently since they were declared with async let
             stats = try await statsTask
             trends = try await trendsTask.trends

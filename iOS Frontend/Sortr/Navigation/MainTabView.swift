@@ -38,10 +38,6 @@ struct MainTabView: View {
                 }
                 .badge(unreadCount)
 
-                Tab("Shares", systemImage: "person.2.fill", value: AppTab.shares) {
-                    NavigationStack { SharesView() }
-                }
-
                 Tab("Profile", systemImage: "person.crop.circle.fill", value: AppTab.profile) {
                     NavigationStack { ProfileView() }
                 }
@@ -86,7 +82,7 @@ struct MainTabView: View {
 
 enum AppTab: Hashable {
     case items, locations, scanner, dashboard
-    case notifications, shares, profile, settings, exportImport
+    case notifications, profile, settings, exportImport
     case activity, categories, users
 }
 
