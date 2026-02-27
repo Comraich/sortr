@@ -71,6 +71,9 @@ struct MainTabView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .task { await fetchUnreadCount() }
+        .onReceive(NotificationCenter.default.publisher(for: .notificationsChanged)) { _ in
+            Task { await fetchUnreadCount() }
+        }
     }
 
     private func fetchUnreadCount() async {
