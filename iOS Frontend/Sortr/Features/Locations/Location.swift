@@ -14,13 +14,13 @@ struct Location: Decodable, Identifiable {
 }
 
 /// Lightweight location reference returned inside relations (id + name only).
-struct LocationSummary: Decodable, Identifiable {
+struct LocationSummary: Decodable, Identifiable, Hashable {
     let id: Int
     let name: String
 }
 
 /// A storage box that belongs to a location.
-struct Box: Decodable, Identifiable {
+struct Box: Decodable, Identifiable, Hashable {
     let id: Int
     let name: String
     let locationId: Int

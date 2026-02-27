@@ -1,6 +1,6 @@
 import Foundation
 
-struct Item: Decodable, Identifiable {
+struct Item: Decodable, Identifiable, Hashable {
     let id: Int
     let name: String
     let category: String?
@@ -20,12 +20,12 @@ struct Item: Decodable, Identifiable {
 
     // MARK: - Nested relation types
 
-    struct ItemLocation: Decodable, Identifiable {
+    struct ItemLocation: Decodable, Identifiable, Hashable {
         let id: Int
         let name: String
     }
 
-    struct ItemBox: Decodable, Identifiable {
+    struct ItemBox: Decodable, Identifiable, Hashable {
         let id: Int
         let name: String
         let location: ItemLocation?
@@ -45,7 +45,7 @@ struct Item: Decodable, Identifiable {
         return .ok
     }
 
-    enum ExpirationStatus: Equatable {
+    enum ExpirationStatus: Equatable, Hashable {
         case none, ok, expiringSoon, expired
     }
 }
