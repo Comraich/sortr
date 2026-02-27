@@ -45,7 +45,7 @@ final class AuthSession {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleSessionExpired()
+            MainActor.assumeIsolated { self?.handleSessionExpired() }
         }
     }
 
