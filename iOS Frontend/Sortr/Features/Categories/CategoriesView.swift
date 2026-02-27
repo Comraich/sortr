@@ -1,21 +1,21 @@
 import SwiftUI
 
+private enum SheetItem: Identifiable {
+    case add
+    case rename(Category)
+    var id: String {
+        switch self {
+        case .add:             return "add"
+        case .rename(let c):  return "rename-\(c.id)"
+        }
+    }
+}
+
 struct CategoriesView: View {
     @State private var categories: [Category] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var sheetItem: SheetItem?
-
-    private enum SheetItem: Identifiable {
-        case add
-        case rename(Category)
-        var id: String {
-            switch self {
-            case .add:             return "add"
-            case .rename(let c):  return "rename-\(c.id)"
-            }
-        }
-    }
 
     var body: some View {
         content
@@ -112,7 +112,7 @@ struct CategoriesView: View {
 // MARK: - Add / Rename sheet
 
 private struct CategoryFormSheet: View {
-    let item: CategoriesView.SheetItem
+    let item: SheetItem
     let onSave: () async -> Void
 
     @Environment(\.dismiss) private var dismiss
